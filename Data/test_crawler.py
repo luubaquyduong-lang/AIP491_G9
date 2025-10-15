@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup, Tag
+import time
 
 def crawl_data(url, output_path):
     try:
@@ -7,85 +8,61 @@ def crawl_data(url, output_path):
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Lấy tiêu đề chính
+        # Lấy tiêu đề bài viết
         title_tag = soup.select_one("h1.title-detail, h1")
         title = title_tag.get_text(strip=True) if title_tag else "Không rõ tiêu đề"
-        print(f"Tiêu đề: {title}")
+        print(f"📘 Tiêu đề: {title}")
 
         with open(output_path, 'a', encoding='utf-8') as file:
-            file.write(f"# {title}\n")
+            file.write(f"\n# {title}\n\n")
 
-            # ✅ Lấy tất cả khối nội dung chính (bao gồm cả hình ảnh, tiêu đề, đoạn văn)
+            # Chọn các khối nội dung chính
             content_blocks = soup.select(
-                "div.section-inner h2, "
-                "div.section-inner h3, "
-                "div.section-inner p, "
-                "div.section-inner div[style*='text-align'], "
-                "div.medium-insert-images-large figure"
+                ".section-inner.inset-column h2, "
+                ".section-inner.inset-column h3, "
+                ".section-inner.inset-column p, "
+                ".section-inner.inset-column div[style*='text-align:left']"
             )
 
-            buffer_text = []
+            current_header = None
+            buffer = []
 
             def flush_buffer():
-                """Ghi các đoạn văn đã gom thành 1 đoạn"""
-                nonlocal buffer_text
-                if buffer_text:
-                    file.write(" ".join(buffer_text) + "\n\n")
-                    buffer_text = []
+                nonlocal buffer
+                if buffer:
+                    file.write(" ".join(buffer).strip() + "\n\n")
+                    buffer = []
 
             for block in content_blocks:
                 if not isinstance(block, Tag):
                     continue
+                text = block.get_text(strip=True)
+                if not text:
+                    continue
 
-                # Nếu là tiêu đề phụ
+                # Nếu gặp tiêu đề phụ → ghi lại phần trước rồi xuống dòng
                 if block.name in ["h2", "h3"]:
                     flush_buffer()
-                    subheader = block.get_text(strip=True)
-                    file.write(f"## {subheader}\n")
+                    current_header = text
+                    file.write(f"## {current_header}\n")
+                else:
+                    buffer.append(text)
 
-                # Nếu là đoạn văn
-                elif block.name in ["p", "div"]:
-                    text = block.get_text(strip=True)
-                    if text:
-                        buffer_text.append(text)
+            flush_buffer()
 
-                # Nếu là ảnh
-                elif block.name == "figure":
-                    flush_buffer()
-                    img = block.find("img")
-                    caption = block.find("figcaption")
-
-                    if img:
-                        src = (
-                            img.get("data-src")
-                            or img.get("data-original")
-                            or img.get("srcset")
-                            or img.get("src")
-                        )
-                        if src:
-                            # Nếu srcset có nhiều link → lấy link đầu tiên
-                            if " " in src:
-                                src = src.split()[0]
-                            caption_text = caption.get_text(strip=True) if caption else ""
-                            file.write(f"![{caption_text}]({src})\n\n")
-
-            flush_buffer()  # Ghi nốt phần còn lại
-
-        print(f"✅ Đã lưu dữ liệu từ {url} vào {output_path}")
+        print(f"✅ Đã lưu dữ liệu từ {url} vào {output_path}\n")
 
     except Exception as e:
         print(f"❌ Lỗi với {url}: {e}")
 
 
 if __name__ == "__main__":
-    input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_link.txt"
-    output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data.txt"
+    input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_text\data_link.txt"
+    output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_image\data_image.txt"
 
-    # Đọc danh sách link từ file
     with open(input_file, "r", encoding="utf-8") as f:
-        urls = [line.strip() for line in f if line.strip()]  # bỏ dòng trống
+        urls = [line.strip() for line in f if line.strip()]
 
-    # Vòng lặp crawl từng link
     for url in urls:
         crawl_data(url, output_file)
-
+        time.sleep(1)
