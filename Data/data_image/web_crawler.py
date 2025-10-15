@@ -85,22 +85,10 @@ def crawl_data(url):
             
             section_classes = section.get('class', [])
             
-            # CÁCH 1: Tìm ảnh trực tiếp trong section
-            images = section.find_all('img')
+            # Tìm tất cả figure tags trong section (mỗi figure chứa 1 ảnh + caption)
+            figures = section.find_all('figure')
             
-            # CÁCH 2: Tìm trong div.medium-insert-images (nested deeper)
-            if not images:
-                image_containers = section.find_all('div', class_=re.compile(r'medium-insert-images'))
-                for container in image_containers:
-                    images.extend(container.find_all('img'))
-            
-            # CÁCH 3: Tìm trong figure tag
-            if not images:
-                figures = section.find_all('figure')
-                for figure in figures:
-                    images.extend(figure.find_all('img'))
-            
-            if images:
+            if figures:
                 # Nếu đang có text group, lưu nó trước
                 if current_text_group:
                     combined_text = '\n\n'.join(current_text_group)
@@ -111,40 +99,85 @@ def crawl_data(url):
                     print(f"[TEXT GROUP] {len(current_text_group)} paragraphs combined")
                     current_text_group = []
                 
-                # Xử lý ảnh
-                for img in images:
-                    img_url = img.get('src') or img.get('data-src')  # Thêm data-src cho lazy load
-                    if img_url and img_url not in processed_images:
-                        processed_images.add(img_url)
-                        
-                        alt_text = img.get('alt', '')
-                        
-                        # Lấy caption - thử nhiều cách
-                        caption = ''
-                        
-                        # Cách 1: Tìm figcaption trong cùng section
-                        figcaption = section.find('figcaption')
-                        if figcaption:
-                            caption = figcaption.get_text(strip=True)
-                        else:
-                            # Cách 2: Tìm figcaption trong parent figure của img
+                # Xử lý từng figure (mỗi figure = 1 ảnh + caption riêng)
+                for figure in figures:
+                    img = figure.find('img')
+                    if img:
+                        img_url = img.get('src') or img.get('data-src')
+                        if img_url and img_url not in processed_images:
+                            processed_images.add(img_url)
+                            
+                            alt_text = img.get('alt', '')
+                            
+                            # Lấy caption từ figcaption TRONG figure này
+                            caption = ''
+                            figcaption = figure.find('figcaption')
+                            if figcaption:
+                                caption = figcaption.get_text(strip=True)
+                            
+                            image_data = {
+                                'type': 'image',
+                                'url': img_url,
+                                'alt': alt_text,
+                                'caption': caption
+                            }
+                            data['content'].append(image_data)
+                            
+                            print(f"[IMAGE] {img_url[:80]}...")
+                            if caption:
+                                print(f"        Caption: {caption[:80]}...")
+            else:
+                # Nếu không có figure, tìm ảnh theo cách cũ (fallback)
+                images = section.find_all('img')
+                
+                # Tìm trong div.medium-insert-images
+                if not images:
+                    image_containers = section.find_all('div', class_=re.compile(r'medium-insert-images'))
+                    for container in image_containers:
+                        images.extend(container.find_all('img'))
+                
+                if images:
+                    # Nếu đang có text group, lưu nó trước
+                    if current_text_group:
+                        combined_text = '\n\n'.join(current_text_group)
+                        data['content'].append({
+                            'type': 'text',
+                            'content': combined_text
+                        })
+                        print(f"[TEXT GROUP] {len(current_text_group)} paragraphs combined")
+                        current_text_group = []
+                    
+                    for img in images:
+                        img_url = img.get('src') or img.get('data-src')
+                        if img_url and img_url not in processed_images:
+                            processed_images.add(img_url)
+                            
+                            alt_text = img.get('alt', '')
+                            
+                            # Tìm caption gần nhất với img này
+                            caption = ''
                             parent_figure = img.find_parent('figure')
                             if parent_figure:
                                 figcaption = parent_figure.find('figcaption')
                                 if figcaption:
                                     caption = figcaption.get_text(strip=True)
-                        
-                        image_data = {
-                            'type': 'image',
-                            'url': img_url,
-                            'alt': alt_text,
-                            'caption': caption
-                        }
-                        data['content'].append(image_data)
-                        
-                        print(f"[IMAGE] {img_url[:80]}...")
-                        if caption:
-                            print(f"        Caption: {caption[:80]}...")
+                            else:
+                                # Nếu không có figure parent, tìm figcaption trong section
+                                figcaption = section.find('figcaption')
+                                if figcaption:
+                                    caption = figcaption.get_text(strip=True)
+                            
+                            image_data = {
+                                'type': 'image',
+                                'url': img_url,
+                                'alt': alt_text,
+                                'caption': caption
+                            }
+                            data['content'].append(image_data)
+                            
+                            print(f"[IMAGE] {img_url[:80]}...")
+                            if caption:
+                                print(f"        Caption: {caption[:80]}...")
             
             # Kiểm tra nếu là section chứa text
             if 'inset-column' in section_classes:
@@ -264,7 +297,7 @@ def save_to_text(all_data, output_file):
                             if item['caption']:
                                 f.write(f"Chú thích: {item['caption']}\n")
                             f.write("\n")
-                    
+
                     f.write("\n")
         print(f"✓ Đã lưu dữ liệu text vào {output_file}")
     except Exception as e:

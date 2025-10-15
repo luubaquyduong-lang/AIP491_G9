@@ -214,7 +214,6 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import json
-import re
 
 def crawl_data(url):
     try:
@@ -228,38 +227,11 @@ def crawl_data(url):
         # Phân tích HTML
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Lấy tiêu đề bài viết - thử nhiều cách
-        article_title = 'Không có tiêu đề'
+        # Lấy tiêu đề bài viết
+        title = soup.find('h1', class_='title-detail')
+        article_title = title.get_text(strip=True) if title else 'Không có tiêu đề'
         
-        # Cách 1: Tìm trong span.title-cover (cho trang có cover image)
-        title_cover = soup.find('span', class_='title-cover')
-        if title_cover:
-            article_title = title_cover.get_text(strip=True)
-        else:
-            # Cách 2: Tìm trong h1.title-detail (cho trang thông thường)
-            title_detail = soup.find('h1', class_='title-detail')
-            if title_detail:
-                article_title = title_detail.get_text(strip=True)
-            else:
-                # Cách 3: Tìm h1 bất kỳ
-                h1_tag = soup.find('h1')
-                if h1_tag:
-                    article_title = h1_tag.get_text(strip=True)
-        
-        # Lấy thêm location từ text-cover nếu có
-        location = ''
-        text_cover = soup.find('span', class_='text-cover')
-        if text_cover:
-            location_h1 = text_cover.find('h1')
-            if location_h1:
-                location = location_h1.get_text(strip=True)
-                # Kết hợp tiêu đề và địa điểm
-                if location and article_title != 'Không có tiêu đề':
-                    article_title = f"{article_title} {location}"
-                elif location:
-                    article_title = location
-        
-        # Tìm điểm kết thúc bài viết - CHỈ LÀ ĐIỂM DỪA, KHÔNG DỪNG SỚM
+        # Tìm điểm kết thúc bài viết
         article_end = soup.find('span', {'id': 'article-end'})
         
         # Lấy tất cả các section
@@ -278,7 +250,7 @@ def crawl_data(url):
         
         # Biến để theo dõi và gộp text
         current_text_group = []
-        processed_sections = set()
+        processed_sections = set()  # Tránh xử lý trùng section
         
         for section in all_sections:
             # Tránh xử lý section trùng lặp
@@ -287,14 +259,13 @@ def crawl_data(url):
                 continue
             processed_sections.add(section_id)
             
-            # CHỈ DỪNG NẾU section này CHỨA article-end VÀ KHÔNG CÓ NỘI DUNG GÌ KHÁC
-            if section.find('span', {'id': 'article-end'}):
-                # Kiểm tra xem section có text không (ngoài article-end)
-                section_text = section.get_text(strip=True)
-                # Nếu section chỉ có article-end thì dừng, còn không thì vẫn xử lý
-                if len(section_text) < 50:  # Quá ngắn, chỉ là marker
-                    print("[INFO] Đã đến article-end marker, dừng crawl")
-                    break
+            # Kiểm tra xem section có nằm sau article-end không
+            if article_end and article_end in section.parents:
+                break
+            
+            # Kiểm tra nếu section chứa article-end thì dừng
+            if article_end and section.find('span', {'id': 'article-end'}):
+                break
             
             section_classes = section.get('class', [])
             
@@ -332,45 +303,27 @@ def crawl_data(url):
                         }
                         data['content'].append(image_data)
                         
-                        print(f"[IMAGE] {img_url[:80]}...")
+                        print(f"[IMAGE] {img_url}")
                         if caption:
-                            print(f"        Caption: {caption[:80]}...")
+                            print(f"        Caption: {caption}")
             
             # Kiểm tra nếu là section chứa text
             if 'inset-column' in section_classes:
-                # Lấy text từ các thẻ - LẤY TẤT CẢ, KHÔNG GIỚI HẠN
-                text_elements = section.find_all(['p', 'h2', 'h3'])
+                # Lấy text từ các thẻ
+                text_elements = section.find_all(['p', 'h2', 'h3'], recursive=False)
                 
                 for elem in text_elements:
                     # Bỏ qua nếu element chứa ảnh
                     if elem.find('img'):
                         continue
                     
+                    # Bỏ qua nếu là phần tác giả/ngày tháng
+                    if elem.get('style') and ('text-align:right' in elem.get('style') or 'text-align: right' in elem.get('style')):
+                        continue
+                    
+                    # Bỏ qua phần "Cập nhật"
                     text = elem.get_text(strip=True)
-                    if not text:
-                        continue
-                    
-                    # Kiểm tra class và style để bỏ qua timestamp
-                    elem_class = ' '.join(elem.get('class', []))
-                    elem_style = elem.get('style', '')
-                    
-                    # BỎ QUA timestamp (có class timestamp hoặc màu #757575)
-                    if 'timestamp' in elem_class.lower():
-                        print(f"[SKIP TIMESTAMP] {text[:50]}...")
-                        continue
-                    
-                    if '#757575' in elem_style or 'color:#757575' in elem_style or 'color: #757575' in elem_style:
-                        print(f"[SKIP TIMESTAMP] {text[:50]}...")
-                        continue
-                    
-                    # BỎ QUA text-align:right (author)
-                    if 'text-align:right' in elem_style or 'text-align: right' in elem_style:
-                        print(f"[SKIP AUTHOR] {text[:50]}...")
-                        continue
-                    
-                    # BỎ QUA pattern "Cập nhật DD/MM/YYYY, HH:MM"
-                    if re.match(r'Cập nhật\s+\d{1,2}/\d{1,2}/\d{4}', text):
-                        print(f"[SKIP DATE] {text}")
+                    if text.startswith('Cập nhật') or text.startswith('Theo ') or not text:
                         continue
                     
                     # Nếu là tiêu đề (h2, h3)
@@ -395,7 +348,6 @@ def crawl_data(url):
                     else:
                         # Thêm vào text group
                         current_text_group.append(text)
-                        print(f"[TEXT ADDED] {text[:80]}...")
         
         # Lưu text group cuối cùng (nếu có)
         if current_text_group:
@@ -404,7 +356,7 @@ def crawl_data(url):
                 'type': 'text',
                 'content': combined_text
             })
-            print(f"[TEXT GROUP FINAL] {len(current_text_group)} paragraphs combined")
+            print(f"[TEXT GROUP] {len(current_text_group)} paragraphs combined")
         
         return data
     
@@ -432,27 +384,29 @@ def save_to_text(all_data, output_file):
         with open(output_file, 'w', encoding='utf-8') as f:
             for article in all_data:
                 if article:
-                    f.write(f"TIÊU ĐỀ: {article['title']}\n\n")
+                    f.write(f"{'='*100}\n")
+                    f.write(f"TIÊU ĐỀ: {article['title']}\n")
+                    f.write(f"URL: {article['url']}\n")
+                    f.write(f"{'='*100}\n")
+                    
                     for item in article['content']:
                         if item['type'] == 'heading':
                             # Tiêu đề phụ
-                            f.write(f"\n{'★ ' + item['content'].upper() + ' ★'}\n\n")
+                            f.write(f"{'★ ' + item['content'].upper() + ' ★'}\n")
                         elif item['type'] == 'text':
                             # Đoạn văn (đã được gộp)
-                            f.write(f"{item['content']}\n\n")
+                            f.write(f"{item['content']}\n")
                         elif item['type'] == 'image':
                             # Ảnh
-                            f.write(f"\n[ẢNH]\n")
+                            f.write(f"[ẢNH]\n")
                             f.write(f"URL: {item['url']}\n")
                             if item['caption']:
                                 f.write(f"Chú thích: {item['caption']}\n")
                             f.write("\n")
-                    
                     f.write("\n")
         print(f"✓ Đã lưu dữ liệu text vào {output_file}")
     except Exception as e:
         print(f"Lỗi khi lưu file text: {e}")
-        
 
 if __name__ == "__main__":
     input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_link.txt"
@@ -494,7 +448,7 @@ if __name__ == "__main__":
         
         # Delay giữa các request
         if idx < len(urls):
-            time.sleep(5)
+            time.sleep(7)
     
     # Lưu kết quả
     print(f"\n{'='*80}")
