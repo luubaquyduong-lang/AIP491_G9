@@ -64,8 +64,7 @@ def crawl_data(url):
         print(f"URL: {url}")
         print(f"{'='*80}\n")
         
-        # Biến để theo dõi và gộp text
-        current_text_group = []
+        # Biến để theo dõi
         processed_sections = set()
         processed_images = set()  # Tránh lấy ảnh trùng
         
@@ -85,106 +84,247 @@ def crawl_data(url):
             
             section_classes = section.get('class', [])
             
-            # Tìm tất cả figure tags trong section (mỗi figure chứa 1 ảnh + caption)
-            figures = section.find_all('figure')
+            # XỬ LÝ THEO THỨ TỰ XUẤT HIỆN TRONG HTML
+            # Tìm tất cả các element có thể chứa nội dung
+            all_content_elements = []
             
-            if figures:
-                # Nếu đang có text group, lưu nó trước
-                if current_text_group:
-                    combined_text = '\n\n'.join(current_text_group)
-                    data['content'].append({
-                        'type': 'text',
-                        'content': combined_text
-                    })
-                    print(f"[TEXT GROUP] {len(current_text_group)} paragraphs combined")
-                    current_text_group = []
+            # Lấy tất cả elements trong section theo thứ tự xuất hiện
+            # Bao gồm cả các div chứa ảnh trong gallery structure
+            section_elements = section.find_all(['figure', 'img', 'p', 'h2', 'h3', 'h4', 'strong', 'div'])
+            
+            # Thêm index để xác định thứ tự
+            for index, elem in enumerate(section_elements):
+                elem_tag = elem.name
                 
-                # Xử lý từng figure (mỗi figure = 1 ảnh + caption riêng)
-                for figure in figures:
-                    img = figure.find('img')
-                    if img:
-                        img_url = img.get('src') or img.get('data-src')
+                # Xử lý figure (cho tất cả sections)
+                if elem_tag == 'figure':
+                    # Tìm tất cả ảnh trong figure (bao gồm cả gallery structure)
+                    images_in_figure = elem.find_all('img')
+                    
+                    for img in images_in_figure:
+                        # Ưu tiên data-desktop-src, sau đó data-src, cuối cùng là src
+                        img_url = (img.get('data-desktop-src') or 
+                                  img.get('data-src') or 
+                                  img.get('src'))
+                        
                         if img_url and img_url not in processed_images:
                             processed_images.add(img_url)
                             
                             alt_text = img.get('alt', '')
                             
-                            # Lấy caption từ figcaption TRONG figure này
+                            # Tìm caption từ nhiều nguồn khác nhau
                             caption = ''
-                            figcaption = figure.find('figcaption')
+                            
+                            # Cách 1: Tìm figcaption truyền thống
+                            figcaption = elem.find('figcaption')
                             if figcaption:
                                 caption = figcaption.get_text(strip=True)
                             
-                            image_data = {
-                                'type': 'image',
-                                'url': img_url,
-                                'alt': alt_text,
-                                'caption': caption
-                            }
-                            data['content'].append(image_data)
+                            # Cách 2: Tìm div.desc_cation hoặc div.desc_caption (cho gallery structure)
+                            if not caption:
+                                desc_cation = elem.find('div', class_='desc_cation')
+                                if not desc_cation:
+                                    desc_cation = elem.find('div', class_='desc_caption')
+                                if desc_cation:
+                                    caption = desc_cation.get_text(strip=True)
                             
-                            print(f"[IMAGE] {img_url[:80]}...")
-                            if caption:
-                                print(f"        Caption: {caption[:80]}...")
-            else:
-                # Nếu không có figure, tìm ảnh theo cách cũ (fallback)
-                images = section.find_all('img')
+                            # Cách 3: Tìm caption trong div.item_gallery gần nhất
+                            if not caption:
+                                item_gallery = img.find_parent('div', class_='item_gallery')
+                                if item_gallery:
+                                    gallery_caption = item_gallery.find('div', class_='desc_cation')
+                                    if not gallery_caption:
+                                        gallery_caption = item_gallery.find('div', class_='desc_caption')
+                                    if gallery_caption:
+                                        caption = gallery_caption.get_text(strip=True)
+                            
+                            # Cách 4: Tìm trong các div có class chứa 'desc' hoặc 'caption'
+                            if not caption:
+                                all_desc_divs = elem.find_all('div', class_=lambda x: x and ('desc' in x.lower() or 'caption' in x.lower()))
+                                for desc_div in all_desc_divs:
+                                    text = desc_div.get_text(strip=True)
+                                    if text and len(text) > 5:  # Caption thường có độ dài > 5 ký tự
+                                        caption = text
+                                        break
+                            
+                            # Cách 5: Tìm title attribute của ảnh
+                            if not caption:
+                                title = img.get('title', '')
+                                if title:
+                                    caption = title
+                            
+                            # Thêm figure vào danh sách
+                            all_content_elements.append({
+                                'element': elem,
+                                'type': 'figure',
+                                'img_url': img_url,
+                                'alt': alt_text,
+                                'caption': caption,
+                                'position': index
+                            })
                 
-                # Tìm trong div.medium-insert-images
-                if not images:
-                    image_containers = section.find_all('div', class_=re.compile(r'medium-insert-images'))
-                    for container in image_containers:
-                        images.extend(container.find_all('img'))
-                
-                if images:
-                    # Nếu đang có text group, lưu nó trước
-                    if current_text_group:
-                        combined_text = '\n\n'.join(current_text_group)
-                        data['content'].append({
-                            'type': 'text',
-                            'content': combined_text
-                        })
-                        print(f"[TEXT GROUP] {len(current_text_group)} paragraphs combined")
-                        current_text_group = []
+                # Xử lý ảnh không nằm trong figure (cho tất cả sections)
+                elif elem_tag == 'img':
+                    # Kiểm tra xem ảnh này đã được xử lý trong figure chưa
+                    already_processed = False
+                    for existing in all_content_elements:
+                        if existing['type'] == 'figure' and elem in existing['element'].descendants:
+                            already_processed = True
+                            break
                     
-                    for img in images:
-                        img_url = img.get('src') or img.get('data-src')
+                    if not already_processed:
+                        # Ưu tiên data-desktop-src, sau đó data-src, cuối cùng là src
+                        img_url = (elem.get('data-desktop-src') or 
+                                  elem.get('data-src') or 
+                                  elem.get('src'))
+                        
                         if img_url and img_url not in processed_images:
                             processed_images.add(img_url)
                             
-                            alt_text = img.get('alt', '')
+                            alt_text = elem.get('alt', '')
                             
                             # Tìm caption gần nhất với img này
                             caption = ''
-                            parent_figure = img.find_parent('figure')
+                            
+                            # Tìm trong parent figure trước
+                            parent_figure = elem.find_parent('figure')
                             if parent_figure:
+                                # Cách 1: figcaption truyền thống
                                 figcaption = parent_figure.find('figcaption')
                                 if figcaption:
                                     caption = figcaption.get_text(strip=True)
+                                
+                                # Cách 2: div.desc_cation hoặc div.desc_caption
+                                if not caption:
+                                    desc_cation = parent_figure.find('div', class_='desc_cation')
+                                    if not desc_cation:
+                                        desc_cation = parent_figure.find('div', class_='desc_caption')
+                                    if desc_cation:
+                                        caption = desc_cation.get_text(strip=True)
+                                
+                                # Cách 3: Tìm trong các div có class chứa 'desc' hoặc 'caption'
+                                if not caption:
+                                    all_desc_divs = parent_figure.find_all('div', class_=lambda x: x and ('desc' in x.lower() or 'caption' in x.lower()))
+                                    for desc_div in all_desc_divs:
+                                        text = desc_div.get_text(strip=True)
+                                        if text and len(text) > 5:
+                                            caption = text
+                                            break
                             else:
-                                # Nếu không có figure parent, tìm figcaption trong section
+                                # Nếu không có figure parent, tìm trong section
                                 figcaption = section.find('figcaption')
                                 if figcaption:
                                     caption = figcaption.get_text(strip=True)
+                                
+                                # Tìm div.desc_cation hoặc div.desc_caption trong section
+                                if not caption:
+                                    desc_cation = section.find('div', class_='desc_cation')
+                                    if not desc_cation:
+                                        desc_cation = section.find('div', class_='desc_caption')
+                                    if desc_cation:
+                                        caption = desc_cation.get_text(strip=True)
+                                
+                                # Tìm trong các div có class chứa 'desc' hoặc 'caption'
+                                if not caption:
+                                    all_desc_divs = section.find_all('div', class_=lambda x: x and ('desc' in x.lower() or 'caption' in x.lower()))
+                                    for desc_div in all_desc_divs:
+                                        text = desc_div.get_text(strip=True)
+                                        if text and len(text) > 5:
+                                            caption = text
+                                            break
                             
-                            image_data = {
+                            # Cách cuối: Tìm title attribute của ảnh
+                            if not caption:
+                                title = elem.get('title', '')
+                                if title:
+                                    caption = title
+                            
+                            # Thêm ảnh vào danh sách
+                            all_content_elements.append({
+                                'element': elem,
                                 'type': 'image',
-                                'url': img_url,
+                                'img_url': img_url,
                                 'alt': alt_text,
-                                'caption': caption
-                            }
-                            data['content'].append(image_data)
-                            
-                            print(f"[IMAGE] {img_url[:80]}...")
-                            if caption:
-                                print(f"        Caption: {caption[:80]}...")
-            
-            # Kiểm tra nếu là section chứa text
-            if 'inset-column' in section_classes:
-                # Lấy text từ các thẻ - LẤY TẤT CẢ
-                text_elements = section.find_all(['p', 'h2', 'h3', 'h4', 'strong'])
+                                'caption': caption,
+                                'position': index
+                            })
                 
-                for elem in text_elements:
+                # Xử lý div có thể chứa ảnh (gallery structure)
+                elif elem_tag == 'div':
+                    # Chỉ xử lý các div có class liên quan đến ảnh
+                    div_classes = elem.get('class', [])
+                    is_image_div = any(cls in ['item_gallery', 'medium-insert-images', 'gallery_block'] 
+                                     for cls in div_classes)
+                    
+                    if is_image_div:
+                        # Tìm ảnh trong div này
+                        div_images = elem.find_all('img')
+                        for img in div_images:
+                            # Kiểm tra xem ảnh này đã được xử lý chưa
+                            already_processed = False
+                            for existing in all_content_elements:
+                                if existing['type'] in ['figure', 'image'] and img in existing['element'].descendants:
+                                    already_processed = True
+                                    break
+                            
+                            if not already_processed:
+                                # Ưu tiên data-desktop-src, sau đó data-src, cuối cùng là src
+                                img_url = (img.get('data-desktop-src') or 
+                                          img.get('data-src') or 
+                                          img.get('src'))
+                                
+                                if img_url and img_url not in processed_images:
+                                    processed_images.add(img_url)
+                                    
+                                    alt_text = img.get('alt', '')
+                                    
+                                    # Tìm caption
+                                    caption = ''
+                                    
+                                    # Tìm div.desc_cation hoặc div.desc_caption trong div hiện tại
+                                    desc_cation = elem.find('div', class_='desc_cation')
+                                    if not desc_cation:
+                                        desc_cation = elem.find('div', class_='desc_caption')
+                                    if desc_cation:
+                                        caption = desc_cation.get_text(strip=True)
+                                    
+                                    # Tìm trong các div có class chứa 'desc' hoặc 'caption'
+                                    if not caption:
+                                        all_desc_divs = elem.find_all('div', class_=lambda x: x and ('desc' in x.lower() or 'caption' in x.lower()))
+                                        for desc_div in all_desc_divs:
+                                            text = desc_div.get_text(strip=True)
+                                            if text and len(text) > 5:
+                                                caption = text
+                                                break
+                                    
+                                    # Tìm trong parent figure nếu có
+                                    if not caption:
+                                        parent_figure = elem.find_parent('figure')
+                                        if parent_figure:
+                                            desc_cation = parent_figure.find('div', class_='desc_cation')
+                                            if not desc_cation:
+                                                desc_cation = parent_figure.find('div', class_='desc_caption')
+                                            if desc_cation:
+                                                caption = desc_cation.get_text(strip=True)
+                                    
+                                    # Cách cuối: Tìm title attribute của ảnh
+                                    if not caption:
+                                        title = img.get('title', '')
+                                        if title:
+                                            caption = title
+                                    
+                                    # Thêm ảnh vào danh sách
+                                    all_content_elements.append({
+                                        'element': elem,
+                                        'type': 'image',
+                                        'img_url': img_url,
+                                        'alt': alt_text,
+                                        'caption': caption,
+                                        'position': index
+                                    })
+                
+                # Xử lý text elements (chỉ trong inset-column)
+                elif elem_tag in ['p', 'h2', 'h3', 'h4', 'strong'] and 'inset-column' in section_classes:
                     # Bỏ qua nếu element chứa ảnh
                     if elem.find('img'):
                         continue
@@ -212,7 +352,7 @@ def crawl_data(url):
                         continue
                     
                     # BỎ QUA text-align:left (có thể là metadata)
-                    if 'text-align:left' in elem_style and elem.name == 'p' and elem.get('style'):
+                    if 'text-align:left' in elem_style and elem_tag == 'p' and elem.get('style'):
                         # Nếu có style text-align:left explicit, có thể là metadata
                         if len(text) < 100:  # Và text ngắn
                             print(f"[SKIP METADATA] {text[:50]}...")
@@ -223,8 +363,49 @@ def crawl_data(url):
                         print(f"[SKIP DATE] {text}")
                         continue
                     
+                    # Thêm text element vào danh sách
+                    all_content_elements.append({
+                        'element': elem,
+                        'type': 'text',
+                        'text': text,
+                        'tag': elem_tag,
+                        'position': index
+                    })
+            
+            # SẮP XẾP THEO THỨ TỰ XUẤT HIỆN (position)
+            all_content_elements.sort(key=lambda x: x['position'])
+            
+            # XỬ LÝ THEO THỨ TỰ ĐÃ SẮP XẾP
+            current_text_group = []
+            
+            for item in all_content_elements:
+                if item['type'] == 'figure' or item['type'] == 'image':
+                    # Nếu đang có text group, lưu nó trước
+                    if current_text_group:
+                        combined_text = '\n\n'.join(current_text_group)
+                        data['content'].append({
+                            'type': 'text',
+                            'content': combined_text
+                        })
+                        print(f"[TEXT GROUP] {len(current_text_group)} paragraphs combined")
+                        current_text_group = []
+                    
+                    # Thêm ảnh
+                    image_data = {
+                        'type': 'image',
+                        'url': item['img_url'],
+                        'alt': item['alt'],
+                        'caption': item['caption']
+                    }
+                    data['content'].append(image_data)
+                    
+                    print(f"[IMAGE] {item['img_url'][:80]}...")
+                    if item['caption']:
+                        print(f"        Caption: {item['caption'][:80]}...")
+                
+                elif item['type'] == 'text':
                     # Nếu là tiêu đề (h2, h3, h4)
-                    if elem.name in ['h2', 'h3', 'h4']:
+                    if item['tag'] in ['h2', 'h3', 'h4']:
                         # Lưu text group trước đó (nếu có)
                         if current_text_group:
                             combined_text = '\n\n'.join(current_text_group)
@@ -238,23 +419,23 @@ def crawl_data(url):
                         # Thêm tiêu đề như một item riêng
                         data['content'].append({
                             'type': 'heading',
-                            'content': text,
-                            'level': elem.name
+                            'content': item['text'],
+                            'level': item['tag']
                         })
-                        print(f"[HEADING {elem.name.upper()}] {text}")
+                        print(f"[HEADING {item['tag'].upper()}] {item['text']}")
                     else:
                         # Thêm vào text group
-                        current_text_group.append(text)
-                        print(f"[TEXT ADDED] {text[:80]}...")
-        
-        # Lưu text group cuối cùng (nếu có)
-        if current_text_group:
-            combined_text = '\n\n'.join(current_text_group)
-            data['content'].append({
-                'type': 'text',
-                'content': combined_text
-            })
-            print(f"[TEXT GROUP FINAL] {len(current_text_group)} paragraphs combined")
+                        current_text_group.append(item['text'])
+                        print(f"[TEXT ADDED] {item['text'][:80]}...")
+            
+            # Lưu text group cuối cùng của section này (nếu có)
+            if current_text_group:
+                combined_text = '\n\n'.join(current_text_group)
+                data['content'].append({
+                    'type': 'text',
+                    'content': combined_text
+                })
+                print(f"[TEXT GROUP SECTION END] {len(current_text_group)} paragraphs combined")
         
         return data
     
@@ -305,7 +486,7 @@ def save_to_text(all_data, output_file):
         
         
 if __name__ == "__main__":
-    url = "https://vnexpress.net/cam-nang-du-lich-yen-bai-4701574.html"
+    url = "https://vnexpress.net/cam-nang-du-lich-binh-thuan-4749039.html"
     output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_image\test.txt"
     
     data = crawl_data(url)
