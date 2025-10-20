@@ -48,9 +48,9 @@ def crawl_data(url, output_file):
         # Mở file để ghi dữ liệu
         with open(output_file, 'a', encoding='utf-8') as file:
             # Ghi URL nguồn
-            file.write(f"\n{'='*80}\n")
-            file.write(f"URL: {url}\n")
-            file.write(f"{'='*80}\n")
+            # file.write(f"\n{'='*80}\n")
+            # file.write(f"URL: {url}\n")
+            # file.write(f"{'='*80}\n")
             
             for paragraph in paragraphs:
                 file.write(paragraph.get_text() + '\n')
