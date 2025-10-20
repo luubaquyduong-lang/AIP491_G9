@@ -13,7 +13,7 @@ line_id = 0
 
 # ✅ File input và output
 input_path = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vietnamtourism\vietnamtourism_data.txt"
-output_path = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vietnamtourism\corpus_chunks.jsonl"
+output_path = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vietnamtourism\vietnamtourism_corpus_chunks.jsonl"
 
 # ✅ Đọc 10 dòng đầu tiên
 with open(input_path, 'r', encoding='utf-8') as f:
