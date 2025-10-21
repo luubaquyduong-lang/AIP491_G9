@@ -19,13 +19,17 @@ def make_subtitle(text, location):
 def crawl_sections(url, output_file):
     """Crawl nội dung từ 1 URL, lưu trực tiếp vào file TXT"""
     try:
-        response = requests.get(url, timeout=15)
+        response = requests.get(url, timeout=5)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # 🔹 Lấy tiêu đề chính
         title_tag = soup.select_one("h1.title-detail, h1")
         title = title_tag.get_text(strip=True) if title_tag else "Không rõ tiêu đề"
+        print(title_tag)    
+        # Lấy tiêu đề phụ (thẻ h3)
+        h3  = soup.select_one("h1.title-detail, h3")
+        print
 
         # Chuẩn hóa địa danh (bỏ chữ “Du lịch”, “Cẩm nang”)
         for prefix in ["Du lịch", "Cẩm nang", "Khám phá", "Kinh nghiệm"]:
@@ -97,7 +101,7 @@ if __name__ == "__main__":
 
     # ✅ Lấy 10 link đầu
     with open(input_file, "r", encoding="utf-8") as f:
-        urls = [line.strip() for line in islice(f, 10) if line.strip()]
+        urls = [line.strip() for line in islice(f, 1) if line.strip()]
 
     print(f"🔗 Đang crawl {len(urls)} link đầu tiên...\n")
 
