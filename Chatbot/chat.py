@@ -7,11 +7,16 @@ from typing import List, Dict
 from openai import OpenAI
 from dotenv import load_dotenv
 
+# Nạp biến môi trường từ file .env (chứa API key, thông tin cấu hình)
 load_dotenv()
 
+# Lấy API key của OpenAI từ biến môi trường
 api_key = os.getenv("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")
+
+# Khởi tạo client để kết nối với API của OpenAI
 client = OpenAI(api_key=api_key)
 
+# Mẫu prompt hướng dẫn cách GPT trả lời câu hỏi dựa trên dữ liệu RAG
 prompt_template = (
     """###Yêu cầu: Bạn là một trợ lý du lịch thông minh, chuyên cung cấp câu trả lời dựa trên thông tin được truy xuất từ hệ thống về du lịch Việt Nam. Khi nhận được dữ liệu truy xuất từ RAG, hãy:  
 
@@ -25,12 +30,14 @@ prompt_template = (
     ###Dựa vào một số ngữ cảnh truy xuất được dưới đây nếu bạn thấy nó có liên quan đến câu hỏi thì trả lời câu hỏi ở cuối. {input}
     ###Câu hỏi từ người dùng: {question}
     ###Nếu thấy ngữ cảnh có liên quan đến câu hỏi hãy trả lời chi tiết và đầy đủ dựa trên ngữ cảnh."""
-    
 )
 
+# Hàm tạo prompt hoàn chỉnh cho mô hình GPT dựa trên ngữ cảnh và câu hỏi người dùng
 def get_prompt(question, contexts, language):
+    # Ghép các ngữ cảnh (context) thành chuỗi hiển thị đẹp
     context = "\n\n".join([f"Context [{i+1}]: {x['passage']}" for i, x in enumerate(contexts)])
     input = f"\n\n{context}\n\n"
+    # Chèn dữ liệu vào mẫu prompt
     prompt = prompt_template.format(
         input=input,
         question=question, 
@@ -38,7 +45,7 @@ def get_prompt(question, contexts, language):
     )
     return prompt
 
-
+# Hàm phân loại xem câu hỏi có phải là small talk (trò chuyện phiếm) hay không
 def classify_small_talk(input_sentence, language):
     prompt = f"""
     ###Yêu cầu: Bạn là một trợ lý hữu ích được thiết kế để phân loại các câu hỏi của người dùng trong ngữ cảnh của một chatbot du lịch Việt Nam. Nhiệm vụ của bạn là xác định liệu câu hỏi của người dùng có phải là "small talk" hay không"
@@ -61,52 +68,66 @@ def classify_small_talk(input_sentence, language):
     Response: "Cảm ơn bạn đã ghé thăm! Mình là chatbot tư vấn du lịch Việt Nam, luôn sẵn sàng giúp bạn khám phá các điểm đến tuyệt vời, ẩm thực phong phú và nhiều hoạt động thú vị. Hãy hỏi mình bất cứ điều gì liên quan đến du lịch nhé!"
     ###Dựa trên câu hỏi từ người dùng, hãy thực hiện đúng yêu cầu. Câu hỏi từ người dùng: {input_sentence}"""
 
+    # Gọi API GPT để phân loại câu hỏi
     completion = client.chat.completions.create(
       model="gpt-4o-mini",
       messages=[
         {"role": "user", "content": prompt}
       ]
     )
+
+    # Lấy kết quả phân loại
     answer = completion.choices[0].message.content
     return answer.strip().lower()
 
+# Hàm tạo prompt mới dựa trên lịch sử hội thoại
 def create_new_prompt(prompt, chat_history, user_query, **kwargs):
-  new_prompt = f"{prompt} lịch sử cuộc trò chuyện: {chat_history} câu hỏi của người dùng: {user_query}"
-  for key, value in kwargs.items():
-    new_prompt += f" {key}: {value}"
+    # Gộp prompt ban đầu với lịch sử hội thoại và câu hỏi hiện tại
+    new_prompt = f"{prompt} lịch sử cuộc trò chuyện: {chat_history} câu hỏi của người dùng: {user_query}"
+    # Thêm các tham số phụ khác (nếu có)
+    for key, value in kwargs.items():
+        new_prompt += f" {key}: {value}"
+    return new_prompt
 
-  return new_prompt
-
+# Hàm chính điều phối toàn bộ quá trình chatbot
 def chatbot(conversation_history: List[Dict[str, str]], language) -> str:
+    # Lấy câu hỏi cuối cùng mà người dùng nhập vào
     user_query = conversation_history[-1]['content']
 
+    # Tải dữ liệu corpus chứa thông tin du lịch đã được lưu
     meta_corpus = load_meta_corpus(r"../data/corpus_chunks.jsonl")
 
+    # Khởi tạo bộ truy xuất dữ liệu (retriever) dùng BM25 + Bi-encoder
     retriever = Retriever(
         corpus=meta_corpus,
         corpus_emb_path=r"../data/corpus_embedding_w150.pkl",
         model_name="bkai-foundation-models/vietnamese-bi-encoder"
     )
 
-    # Xử lý nếu người dùng có câu hỏi nhỏ hoặc trò chuyện phiếm
+    # Gọi hàm phân loại small talk để kiểm tra loại câu hỏi
     result = classify_small_talk(user_query, language)
     print("result classify small talk:", result)
+
+    # Nếu là small talk -> trả về lời giới thiệu ngắn gọn
     if "no" not in result:
         return result
 
+    # Nếu không phải small talk -> xử lý theo pipeline RAG
     elif "no" in result:
+        # Prompt yêu cầu GPT chuyển câu hỏi thành dạng độc lập (nếu có tham chiếu)
         prompt = """Dựa trên lịch sử cuộc trò chuyện và câu hỏi mới nhất của người dùng, có thể tham chiếu đến ngữ cảnh trong lịch sử trò chuyện, 
             hãy tạo thành một câu hỏi độc lập có thể hiểu được mà không cần lịch sử cuộc trò chuyện. 
             KHÔNG trả lời câu hỏi, chỉ cần điều chỉnh lại nếu cần, nếu không thì giữ nguyên. 
             Nếu câu hỏi bằng tiếng Anh, sau khi tinh chỉnh, hãy dịch câu hỏi đó sang tiếng Việt."""
 
-        # Sử dụng hàm tạo câu hỏi mới từ lịch sử trò chuyện
+        # Tạo prompt mới kết hợp với lịch sử hội thoại
         new_prompt = create_new_prompt(
             prompt=prompt,
             chat_history=conversation_history,
             user_query=user_query,
         )
 
+        # Gọi GPT để tinh chỉnh lại câu hỏi người dùng
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -114,15 +135,23 @@ def chatbot(conversation_history: List[Dict[str, str]], language) -> str:
             ]
         )
 
+        # Lấy câu hỏi đã tinh chỉnh
         answer = completion.choices[0].message.content
         print("Câu hỏi mới: ", answer)
         question = answer
+
+        # Truy xuất top 10 đoạn văn bản có liên quan nhất từ corpus
         top_passages = retriever.retrieve(question, topk=10)
         print("topK:", top_passages)
+
+        # Làm mượt ngữ cảnh (gộp hoặc lọc bớt phần trùng lặp)
         smoothed_contexts = smooth_contexts(top_passages, meta_corpus)
         print("Smooth context: ", smoothed_contexts)
+
+        # Tạo prompt hoàn chỉnh cho GPT với ngữ cảnh và câu hỏi
         prompt = get_prompt(question, smoothed_contexts, language)
     
+        # Gọi GPT để sinh câu trả lời cuối cùng dựa trên ngữ cảnh
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -130,22 +159,26 @@ def chatbot(conversation_history: List[Dict[str, str]], language) -> str:
             ]
         )
 
+        # Lấy câu trả lời cuối cùng
         answer = completion.choices[0].message.content
-        
         return answer
 
+    # Trường hợp lỗi không mong muốn
     else:
         print("Unexpected response from the model.")
         return "Xin lỗi, hệ thống không xử lý được."
     
+# Hàm chạy thử chatbot bằng giao diện dòng lệnh
 def main():
-    # Nhận input từ người dùng
+    # Nhập câu hỏi từ người dùng
     user_query = input("User query: ")
 
+    # Gọi chatbot (cần truyền lịch sử hội thoại và ngôn ngữ)
     result = chatbot(user_query)
 
-    # Trả về output
+    # In kết quả ra màn hình
     print(result)
 
+# Chạy chương trình khi file được thực thi trực tiếp
 if __name__ == "__main__":
     main()
