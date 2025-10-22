@@ -39,8 +39,8 @@ def split_sentences(file_path):
     return processed_lines
 
 # Lưu kết quả vào file mới
-file_path = r'D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_text\data.txt'  # Thay bằng đường dẫn tới file của bạn
-output_path = r'D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_text\data_output.txt'
+file_path = r'D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vnexpress\data_text\vnexpress_data.txt' 
+output_path = r'D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vnexpress\data_text\output.txt'
 
 processed = split_sentences(file_path)
 
