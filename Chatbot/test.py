@@ -12,7 +12,9 @@ meta_corpus = load_meta_corpus("D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9
 retriever = Retriever(
     corpus=meta_corpus,
     corpus_emb_path="D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\corpus_embedding_w150.pkl",
-    model_name="bkai-foundation-models/vietnamese-bi-encoder"
+    # corpus_emb_path="D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\Train_model\corpus_embedding_ft.pkl",
+    # model_name="bkai-foundation-models/vietnamese-bi-encoder"
+    model_name="D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\Train_model\fine_tuned_biencoder"
 )
 
 # Query example
