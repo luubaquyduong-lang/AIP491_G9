@@ -128,7 +128,7 @@ def create_training_examples_with_api(file_path, output_pkl, limit=None, save_ev
     passages = load_passages_from_jsonl(file_path)
     if limit:
         passages = passages[:limit]
-    print(f"📘 Tổng số passage đọc được: {len(passages)}")
+    print(f" Tổng số passage đọc được: {len(passages)}")
 
     tokenized_passages = [tokenize(p.lower()).split() for p in passages]
     bm25 = BM25Okapi(tokenized_passages)
@@ -141,13 +141,13 @@ def create_training_examples_with_api(file_path, output_pkl, limit=None, save_ev
             with open(output_pkl, "rb") as f:
                 examples = pickle.load(f)
             start_idx = len(examples)
-            print(f"🔁 Tiếp tục từ mẫu thứ {start_idx} (đã có {len(examples)} mẫu)")
+            print(f" Tiếp tục từ mẫu thứ {start_idx} (đã có {len(examples)} mẫu)")
         except Exception as e:
-            print(f"⚠️ Không thể load file pickle: {e}. Bắt đầu từ đầu.")
+            print(f" Không thể load file pickle: {e}. Bắt đầu từ đầu.")
 
     # Vòng lặp tạo training example
     for i in tqdm(range(start_idx, len(passages)), desc="🔹 Generating training examples"):
-        print(f"✨ Đang tạo query thứ {i+1}/{len(passages)}")
+        print(f" Đang tạo query thứ {i+1}/{len(passages)}")
         pos = passages[i]
         query = create_query_gpt(pos)
         easy_neg = get_easy_negative(passages, pos, i)
@@ -161,7 +161,7 @@ def create_training_examples_with_api(file_path, output_pkl, limit=None, save_ev
         with open(output_pkl, "wb") as f:
             pickle.dump(examples, f)
 
-        print(f" 💾 Đã lưu mẫu thứ {len(examples)} vào {output_pkl}")
+        print(f"  Đã lưu mẫu thứ {len(examples)} vào {output_pkl}")
 
         time.sleep(1)  # tránh spam API
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     if not os.path.exists(output_file):
         with open(output_file, "wb") as f:
             pickle.dump([], f)
-        print(f"📄 Đã tạo file pickle rỗng: {output_file}")
+        print(f" Đã tạo file pickle rỗng: {output_file}")
 
     # ==========================
     # 3. Chạy hàm tạo dữ liệu

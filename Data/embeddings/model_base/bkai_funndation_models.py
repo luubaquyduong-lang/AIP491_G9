@@ -16,7 +16,7 @@ with open('D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\corpu
 embeddings = model.encode(passages, show_progress_bar=True)
 
 # Lưu vào file .pkl
-with open('D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\corpus_embedding_w150.pkl', 'wb') as f:
+with open('D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\embeddings\model_base\corpus_embedding_w150.pkl', 'wb') as f:
     pickle.dump(embeddings, f)
 
 # import numpy as np
