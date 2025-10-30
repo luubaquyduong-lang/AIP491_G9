@@ -7,7 +7,7 @@ model = SentenceTransformer("bkai-foundation-models/vietnamese-bi-encoder")
 
 # Đọc từng passage từ file output.jsonl
 passages = []
-with open('D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\corpus_chunks_2.jsonl', 'r', encoding='utf-8') as f:
+with open('D:\duongluuba\AIP491_G9\Data\processed\corpus_chunks_2.jsonl', 'r', encoding='utf-8') as f:
     for line in f:
         obj = json.loads(line)
         passages.append(obj['passage'])
@@ -16,7 +16,7 @@ with open('D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\corpu
 embeddings = model.encode(passages, show_progress_bar=True)
 
 # Lưu vào file .pkl
-with open('D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\embeddings\model_base\corpus_embedding_w150.pkl', 'wb') as f:
+with open('D:\duongluuba\AIP491_G9\Data\embeddings\model_base\corpus_embedding_bkai_foundation_models.pkl', 'wb') as f:
     pickle.dump(embeddings, f)
 
 # import numpy as np
