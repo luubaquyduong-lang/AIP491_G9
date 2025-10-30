@@ -4,11 +4,11 @@ from sentence_transformers import SentenceTransformer
 
 # Dùng mô hình đã fine-tune để mã hóa toàn bộ corpus thành embeddings và lưu ra .pkl phục vụ RAG/tìm kiếm.
 # === 1. Load model đã fine-tune ===
-model = SentenceTransformer(r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\Train_model\fine_tuned_biencoder")
+model = SentenceTransformer(r"D:\duongluuba\\model\bkai_finetuned_vn")
 
 # === 2. Đọc corpus gốc ===
 passages = []
-with open(r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\corpus_chunks.jsonl", "r", encoding="utf-8") as f:
+with open(r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\corpus_chunks.jsonl", "r", encoding="utf-8") as f:
     for line in f:
         obj = json.loads(line)
         passages.append(obj["passage"])

@@ -38,8 +38,8 @@ def split_text_by_sentence(text, max_words):
 output = []
 line_id = 0  # tăng theo từng đoạn nhỏ
 
-input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_final.txt"
-output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\corpus_chunks_2.jsonl"
+input_file = r"D:\duongluuba\AIP491_G9\Data\\processed\data_final.txt"
+output_file = r"D:\duongluuba\AIP491_G9\Data\\processed\\corpus_chunks_2.jsonl"
 
 with open(input_file, 'r', encoding='utf-8') as f:
     for line_num, line in enumerate(f):
@@ -51,7 +51,8 @@ with open(input_file, 'r', encoding='utf-8') as f:
         chunks = split_text_by_sentence(line, MAX_LEN)
 
         for chunk in chunks:
-            passage = f"Title: {title}\n\n{chunk}"
+            # passage = f"Title: {title}\n\n{chunk}"
+            passage = f"{chunk}"
             obj = {
                 "title": title,
                 "passage": passage,
