@@ -51,13 +51,13 @@ def load_triplets(pkl_path):
     i = 0
     for ex in data:
         if isinstance(ex, InputExample) and len(ex.texts) >= 3:
-            q = f"query: {ex.texts[0].strip()}"
-            p = f"passage: {ex.texts[1].strip()}"
-            n = f"passage: {ex.texts[2].strip()}"
+            q = f"query {i}: {ex.texts[0].strip()}"
+            p = f"passage: {ex.texts[1][:100]}"
+            n = f"negative: {ex.texts[2][:100].strip()}"
             triplets.append(InputExample(texts=[q, p, n]))
-            if i<10:
+            if i < 10:
                 i += 1  
-                print(f"❇️ Mẫu hợp lệ - Query: {q} |\n Positive: {p} |\n  Negative: {n}")
+                print(f"❇️ Mẫu hợp lệ - Query: {q} \n Positive: {p} \n  Negative: {n}")
     print(f"✅ Tổng số mẫu hợp lệ: {len(triplets)}")
     return triplets
 
@@ -71,5 +71,5 @@ def load_triplets(pkl_path):
 
 
 if __name__ == "__main__":
-    pkl_file = r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_vnexpress_2.pkl"
+    pkl_file = r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_vnexpress_3.pkl"
     load_triplets(pkl_file)
