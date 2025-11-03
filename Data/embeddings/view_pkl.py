@@ -44,23 +44,38 @@ from sentence_transformers import SentenceTransformer, InputExample
 # print("✅ Input:", INPUT_FILE_PATH.exists(), "|", INPUT_FILE_PATH)
 
 # Load triplets và thêm prefix chuẩn E5
-def load_triplets(pkl_path):
+def load_triplets(pkl_path, output_pkl):
     with open(pkl_path, "rb") as f:
         data = pickle.load(f)
     triplets = []
     i = 0
+    triplets_copy = []
     for ex in data:
         if isinstance(ex, InputExample) and len(ex.texts) >= 3:
             q = f"query {i}: {ex.texts[0].strip()}"
             p = f"passage: {ex.texts[1][:100]}"
             n = f"negative: {ex.texts[2][:100].strip()}"
+            # q = f"{ex.texts[0].strip()}"
+            # p = f"{ex.texts[1]}"
+            # n = f"{ex.texts[2].strip()}"
             triplets.append(InputExample(texts=[q, p, n]))
-            if i < 10:
-                i += 1  
-                print(f"❇️ Mẫu hợp lệ - Query: {q} \n Positive: {p} \n  Negative: {n}")
+            #  nếu i chia hết cho 2
+            # if i % 2 == 1:
+            #     triplets_copy.append(InputExample(texts=[q, p, n]))
+            if i < 10:  
+                print(f"{q}\n {p}\n {n}")
+            i += 1
     print(f"✅ Tổng số mẫu hợp lệ: {len(triplets)}")
-    return triplets
+    # # Resume: load file pickle nếu đã tồn tại và không rỗng
+    # try:
+    #     with open(output_pkl, "wb") as f:
+    #         pickle.dump(triplets_copy, f)
+    #     print(f"💾 Đã lưu {len(triplets_copy)} mẫu vào {output_pkl} (triplets_copy)")
+    # except Exception as e:
+    #     print(f"⚠️ Lỗi khi lưu triplets_copy: {e}")
 
+    # return triplets
+    
 # triplets = load_triplets(INPUT_FILE_PATH)
 
 # # Chia train / val / test
@@ -71,5 +86,6 @@ def load_triplets(pkl_path):
 
 
 if __name__ == "__main__":
-    pkl_file = r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_vnexpress_3.pkl"
-    load_triplets(pkl_file)
+    pkl_file = r"D:\duongluuba\AIP491_G9\Data\embeddings\data_train_vnexpress_copy.pkl"
+    output_pkl=r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_vnexpress_copy.pkl"
+    load_triplets(pkl_file, output_pkl)
