@@ -1,6 +1,6 @@
 import json
 
-MAX_LEN = 3000
+MAX_LEN = 5000
 
 def split_text_by_word_count(text, max_words):
     words = text.split()
@@ -9,7 +9,7 @@ def split_text_by_word_count(text, max_words):
 output = []
 line_id = 0  # tăng theo từng đoạn nhỏ
 
-with open('D:\duongluuba\AIP491_G9\Data\\raw\\vnexpress\\vnexpress_data.txt', 'r', encoding='utf-8') as f:
+with open('D:\duongluuba\AIP491_G9\Data\\raw\\vnexpress\\vnexpress_data_v2.txt', 'r', encoding='utf-8') as f:
     for line_num, line in enumerate(f):
         line = line.strip()
         if not line:
@@ -30,7 +30,7 @@ with open('D:\duongluuba\AIP491_G9\Data\\raw\\vnexpress\\vnexpress_data.txt', 'r
             line_id += 1
 
 # Ghi ra file JSONL
-with open('D:\duongluuba\AIP491_G9\Data\\raw\\vnexpress\\vnexpress_corpus.jsonl', 'w', encoding='utf-8') as f:
+with open('D:\duongluuba\AIP491_G9\Data\\raw\\vnexpress\\vnexpress_corpus_v2.jsonl', 'w', encoding='utf-8') as f:
     for item in output:
         f.write(json.dumps(item, ensure_ascii=False) + '\n')
 

@@ -86,6 +86,6 @@ def load_triplets(pkl_path, output_pkl):
 
 
 if __name__ == "__main__":
-    pkl_file = r"D:\duongluuba\AIP491_G9\Data\embeddings\data_train_vnexpress_copy.pkl"
+    pkl_file = r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_vnexpress_2.pkl"
     output_pkl=r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_vnexpress_copy.pkl"
     load_triplets(pkl_file, output_pkl)

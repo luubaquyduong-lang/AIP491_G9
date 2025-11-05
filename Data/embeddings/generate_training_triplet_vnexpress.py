@@ -8,13 +8,14 @@ import pickle
 from tqdm import tqdm
 # from openai import OpenAI
 from sentence_transformers import InputExample
-
-# # ==========================
-# #  KHỞI TẠO OPENAI CLIENT
+from tqdm import tqdm
+from openai import OpenAI
 # ==========================
-# api_gpt = "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"
-#  # Điền API Key của bạn vào đây
-# client = OpenAI(api_key=api_gpt)  # Khởi tạo client OpenAI
+#  KHỞI TẠO OPENAI CLIENT
+# ==========================
+api_gpt = "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"
+ # Điền API Key của bạn vào đây
+client = OpenAI(api_key=api_gpt)  # Khởi tạo client OpenAI
 
 # ==========================
 # 1. HÀM ĐỌC DỮ LIỆU JSONL
@@ -38,63 +39,60 @@ def load_passages_from_jsonl(file_path):
 # 2. SINH QUERY BẰNG GPT
 # ==========================
 def create_query_gpt(text, retries=3):
-    return ['q1', 'q2', 'q3', 'q4','q5']
-#     """
-#     Sinh 5 câu hỏi tự nhiên bằng GPT từ một passage du lịch.
-#     Nếu API lỗi hoặc parse thất bại → dùng câu đầu tiên của passage (thêm '?').
-#     """
-#     # Cắt gọn passage dài
-#     text = text[:1000]
+    """
+    Sinh 5 câu hỏi tự nhiên bằng GPT từ một passage du lịch.
+    Nếu API lỗi hoặc parse thất bại → dùng câu đầu tiên của passage (thêm '?').
+    """
 
-#     # Prompt sinh 5 câu hỏi
-#     prompt = f"""
-# Bạn là trợ lý tạo câu hỏi cho chatbot du lịch Việt Nam.
+    # Prompt sinh 5 câu hỏi
+    prompt = f"""
+Bạn là trợ lý tạo câu hỏi cho chatbot du lịch Việt Nam.
 
-# Hãy đọc đoạn nội dung (chunk) dưới đây và tạo ra đúng **5 câu hỏi** tự nhiên bằng tiếng Việt.
-# Yêu cầu:
-# - Câu hỏi chỉ dựa trên thông tin có trong đoạn.
-# - Không thêm kiến thức ngoài.
-# - Không trả lời, chỉ đặt câu hỏi.
-# - Trả về đúng định dạng JSON list, ví dụ:
-# [
-#   "Câu hỏi 1",
-#   "Câu hỏi 2",
-#   "Câu hỏi 3",
-#   "Câu hỏi 4",
-#   "Câu hỏi 5"
-# ]
+Hãy đọc đoạn nội dung (chunk) dưới đây và tạo ra đúng **5 câu hỏi** tự nhiên bằng tiếng Việt.
+Yêu cầu:
+- Câu hỏi chỉ dựa trên thông tin có trong đoạn.
+- Không thêm kiến thức ngoài.
+- Không trả lời, chỉ đặt câu hỏi.
+- Trả về đúng định dạng JSON list, ví dụ:
+[
+  "Câu hỏi 1",
+  "Câu hỏi 2",
+  "Câu hỏi 3",
+  "Câu hỏi 4",
+  "Câu hỏi 5"
+]
 
-# --- ĐOẠN NỘI DUNG ---
-# {text}
-# --- HẾT ---
-# """.strip()
-#     # Gọi GPT
-#     for _ in range(retries):
-#         try:
-#             response = client.chat.completions.create(
-#                 model="gpt-4o-mini",
-#                 messages=[{"role": "user", "content": prompt}],
-#                 temperature=0.6,
-#             )
-#             content = response.choices[0].message.content.strip()
+--- ĐOẠN NỘI DUNG ---
+{text}
+--- HẾT ---
+""".strip()
+    # Gọi GPT
+    for _ in range(retries):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.6,
+            )
+            content = response.choices[0].message.content.strip()
 
-#             # Parse JSON nếu hợp lệ
-#             try:
-#                 import json
-#                 questions = json.loads(content)
-#                 if isinstance(questions, list) and len(questions) >= 1:
-#                     # Làm sạch
-#                     questions = [q.strip().strip("-• ") for q in questions if len(q.strip()) > 3]
-#                     return questions[:5]
-#             except json.JSONDecodeError:
-#                 # Nếu không phải JSON → tách dòng
-#                 questions = [q.strip("-• \n") for q in content.split("\n") if len(q.strip()) > 5]
-#                 if questions:
-#                     return questions[:5]
+            # Parse JSON nếu hợp lệ
+            try:
+                import json
+                questions = json.loads(content)
+                if isinstance(questions, list) and len(questions) >= 1:
+                    # Làm sạch
+                    questions = [q.strip().strip("-• ") for q in questions if len(q.strip()) > 3]
+                    return questions[:5]
+            except json.JSONDecodeError:
+                # Nếu không phải JSON → tách dòng
+                questions = [q.strip("-• \n") for q in content.split("\n") if len(q.strip()) > 5]
+                if questions:
+                    return questions[:5]
 
-#         except Exception as e:
-#             print("Lỗi API:", e)
-#             time.sleep(5)
+        except Exception as e:
+            print("Lỗi API:", e)
+            time.sleep(5)
 
     # ====== Fallback khi thất bại ======
     # Lấy câu đầu tiên trong passage và thêm dấu hỏi
@@ -111,30 +109,24 @@ def create_query_gpt(text, retries=3):
 
 # Danh sách 63 tỉnh/thành Việt Nam
 VIETNAM_PROVINCES = provinces = [
-    "An Giang", "Bà Nà Hills", "Bắc Giang", "Bình Thuận", "Bình Định", "Bình Dương",
-    "Bình Phước", "Bắc Kạn", "Bảo Lộc", "Bà Rịa - Vũng Tàu", "Bình Liêu", "Ba Vì",
-    "Bắc Ninh", "Bình Ba", "Bạc Liêu", "Bến Tre", "Buôn Ma Thuột", "Chùa Bái Đính",
-    "Chùa Tam Chúc", "Cù Lao Chàm", "Châu Đốc", "Cần Giờ", "Cù Lao Xanh", "Cô Tô",
-    "Cà Mau", "Cao Bằng", "Côn Đảo", "Cát Bà", "Cần Thơ", "Địa đạo Củ Chi", "Đồng Nai",
-    "Điện Biên", "Đồng Tháp", "Đắk Nông", "Đồng Văn", "Đại Lải", "Đền Hùng", "Đà Nẵng",
-    "Đà Lạt", "Đắk Lắk", "Dinh độc lập", "Gia Lai", "Hưng Yên", "Hà Tiên", "Hà Tĩnh",
-    "Hồ Ba Bể", "Hải Dương", "Hòa Bình", "Hà Nam", "Hải Phòng", "Hà Nội", "Hạ Long",
-    "Hội An", "Hà Giang", "Hậu Giang", "Kiên Giang", "Khánh Hòa", "Kon Tum", "Kỳ Co",
-    "Lô Lô Chải", "Làng H'mông Pà Vi", "Lâm Đồng", "Làng Quỳnh Sơn", "Long An",
-    "Lai Châu", "Lào Cai", "Lạng Sơn", "Lăng Cô", "Lý Sơn", "Mèo Vạc", "Măng Đen",
-    "Mai Châu", "Mũi Nghé", "Mù Cang Chải", "Mộc Châu", "Mũi Né", "Nam Du", "Núi Dinh",
-    "Nam Định", "Nghệ An", "Ninh Thuận", "Ninh Bình", "Nha Trang", "Ninh Chữ",
-    "Phố đi bộ hồ Gươm", "Phố đi bộ Nguyễn Huệ", "Phan Thiết", "Phú Yên", "Phú Thọ",
-    "Pù Luông", "Phú Quốc", "Phú Quý", "Quảng Trị", "Quảng Nam", "Quảng Ngãi",
-    "Quảng Bình", "Quảng Ninh", "Quan Lạn", "Quy Nhơn", "Sóc Trăng", "Sơn La",
-    "Sầm Sơn", "Sóc Sơn", "Sa Pa", "Trà Vinh", "Tiền Giang", "Tây Ninh", "Tuyên Quang",
-    "Trà Sư", "Tà Xùa", "Trạm Tấu", "Thái Nguyên", "TP HCM", "Thanh Hóa", "Tú Lệ",
-    "Tam Cốc - Bích Động", "Tam Đảo", "Thừa Thiên Huế", "Thái Bình", "Vị Thanh",
-    "Vườn quốc gia Pù Mát", "Vườn quốc gia Bạch Mã", "Vườn quốc gia Cúc Phương",
-    "Vườn quốc gia Cát Tiên", "Vĩnh Long", "Vịnh Lan Hạ", "Vịnh Hạ Long", "Vũng Tàu",
-    "Vĩnh Phúc", "Y Tý", "Yên Bái"
+    "An Giang","Bắc Giang","Bình Thuận","Bình Định","Bình Dương","Bình Phước","Bắc Kạn",
+    "Bảo Lộc","Bà Rịa - Vũng Tàu","Bình Liêu","Ba Vì","Bắc Ninh","Bình Ba","Bạc Liêu","Bến Tre","Buôn Ma Thuột",
+    "Cù Lao Chàm","Châu Đốc","Cần Giờ","Cù Lao Xanh",
+    "Cô Tô","Cà Mau","Cao Bằng","Côn Đảo","Cát Bà","Cần Thơ",
+    "Đồng Nai","Điện Biên","Đồng Tháp","Đắk Nông","Đồng Văn","Đại Lải","Đền Hùng","Đà Nẵng","Đà Lạt","Đắk Lắk", "Gia Lai",
+    "Hưng Yên","Hà Tiên","Hà Tĩnh","Hải Dương","Hòa Bình","Hà Nam","Hải Phòng",
+    "Hà Nội","Hạ Long","Hội An","Hà Giang","Hậu Giang",
+    "Kiên Giang","Khánh Hòa","Kon Tum","Kỳ Co",
+    "Lâm Đồng","Long An","Lai Châu","Lào Cai",
+    "Lạng Sơn","Lăng Cô","Lý Sơn","Mèo Vạc","Măng Đen","Mai Châu","Mũi Nghé","Mù Cang Chải","Mộc Châu",
+    "Mũi Né","Nam Du","Núi Dinh","Nam Định","Nghệ An","Ninh Thuận", "Ninh Bình","Nha Trang","Ninh Chữ",
+    "Phan Thiết","Phú Yên","Phú Thọ","Pù Luông","Phú Quốc","Phú Quý",
+    "Quảng Trị","Quảng Nam","Quảng Ngãi","Quảng Bình","Quảng Ninh","Quan Lạn","Quy Nhơn",
+    "Sóc Trăng","Sơn La","Sầm Sơn","Sóc Sơn","Sa Pa",
+    "Trà Vinh","Tiền Giang","Tây Ninh","Tuyên Quang", "Tam Chúc", "Trà Sư","Tà Xùa","Trạm Tấu","Thái Nguyên",
+    "Thành phố Hồ Chí Minh","Thanh Hóa","Tú Lệ","Tam Đảo","Thừa Thiên Huế", "Huế", "Thái Bình","Vườn quốc gia Bạch Mã",
+    "Vườn quốc gia Cúc Phương","Vườn quốc gia Cát Tiên","Vĩnh Long","Vịnh Lan Hạ","Vịnh Hạ Long","Vũng Tàu","Vĩnh Phúc","Yên Bái"
 ]
-
 print(len(VIETNAM_PROVINCES), "địa điểm")
 def extract_city_name(text):
     """
@@ -261,7 +253,7 @@ def create_training_examples_with_api(file_path, output_pkl, limit=None):
 # 5. MAIN
 # ==========================
 if __name__ == "__main__":
-    input_file = r"D:\duongluuba\AIP491_G9\Data\\raw\\vnexpress\\vnexpress_corpus.jsonl"
+    input_file = r"D:\duongluuba\AIP491_G9\Data\\raw\\vnexpress\\vnexpress_corpus_v2.jsonl"
     output_file = r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_vnexpress_2.pkl"
 
     # ==========================

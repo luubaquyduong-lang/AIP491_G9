@@ -124,7 +124,7 @@ def get_hard_negative(query, passages, bm25, positive_text, exclude_index):
 # ==========================
 # 4. TẠO DỮ LIỆU TRAIN (CÓ RESUME)
 # ==========================
-def create_training_examples_with_api(file_path, output_pkl, limit=None, save_every=50):
+def create_training_examples_with_api(file_path, output_pkl, limit=None):
     passages = load_passages_from_jsonl(file_path)
     if limit:
         passages = passages[:limit]
@@ -170,7 +170,7 @@ def create_training_examples_with_api(file_path, output_pkl, limit=None, save_ev
 # 5. MAIN
 # ==========================
 if __name__ == "__main__":
-    input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\corpus_chunks_2.jsonl"
+    input_file = r"D:\duongluuba\AIP491_G9\Data\raw\vnexpress\vnexpress_data_v2.txt"
     output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\embeddings\train_triplet.pkl"
 
     # ==========================
@@ -196,5 +196,4 @@ if __name__ == "__main__":
         file_path=input_file,
         output_pkl=output_file,
         limit=None,        # None = lấy hết
-        save_every=50      # lưu tạm mỗi 50 mẫu
     )
