@@ -1,4 +1,4 @@
-############################################# Danh sách các file cần gộp ############################################## 
+############################################ Danh sách các file cần gộp ############################################## 
 # input_files = [
 #     r"D:\duongluuba\AIP491_G9\Data\\raw\\vnexpress\\vnexpress_data_v2.txt",
 #     r"D:\duongluuba\AIP491_G9\Data\\raw\\vietnamtourism\\vietnamtourism_data.txt",
@@ -19,98 +19,96 @@
 
 # -*- coding: utf-8 -*-
 
-############################################# sắp xếp dữ liệu theo danh sách địa danh chuẩn ##############################################
+############################################ sắp xếp dữ liệu theo danh sách địa danh chuẩn ##############################################
 
-# import re
-# from collections import defaultdict
+import re
+from collections import defaultdict
 
-# INPUT_FILE  = r"D:\duongluuba\AIP491_G9\Data\processed\data_final_2.txt"
-# OUTPUT_FILE = r"D:\duongluuba\AIP491_G9\Data\processed\data_final_sorted.txt"
+INPUT_FILE  = r"D:\duongluuba\AIP491_G9\Data\\processed\data_final_4347.txt"
+OUTPUT_FILE = r"D:\duongluuba\AIP491_G9\Data\\processed\data_final_sorted_4347_2.txt"
 
-# CANONICAL = [
-#     "An Giang","Bà Nà Hills","Bắc Giang","Bình Thuận","Bình Định","Bình Dương","Bình Phước","Bắc Kạn",
-#     "Bảo Lộc","Bà Rịa - Vũng Tàu","Bình Liêu","Ba Vì","Bắc Ninh","Bình Ba","Bạc Liêu","Bến Tre",
-#     "Buôn Ma Thuột","Chùa Bái Đính","Chùa Tam Chúc","Cù Lao Chàm","Châu Đốc","Cần Giờ","Cù Lao Xanh",
-#     "Cô Tô","Cà Mau","Cao Bằng","Côn Đảo","Cát Bà","Cần Thơ","Địa đạo Củ Chi","Đồng Nai","Điện Biên",
-#     "Đồng Tháp","Đắk Nông","Đồng Văn","Đại Lải","Đền Hùng","Đà Nẵng","Đà Lạt","Đắk Lắk","Dinh độc lập",
-#     "Gia Lai","Hưng Yên","Hà Tiên","Hà Tĩnh","Hồ Ba Bể","Hải Dương","Hòa Bình","Hà Nam","Hải Phòng",
-#     "Hà Nội","Hạ Long","Hội An","Hà Giang","Hậu Giang","Kiên Giang","Khánh Hòa","Kon Tum","Kỳ Co",
-#     "Lô Lô Chải","Làng H'mông Pà Vi","Lâm Đồng","Làng Quỳnh Sơn","Long An","Lai Châu","Lào Cai",
-#     "Lạng Sơn","Lăng Cô","Lý Sơn","Mèo Vạc","Măng Đen","Mai Châu","Mũi Nghé","Mù Cang Chải","Mộc Châu",
-#     "Mũi Né","Nam Du","Núi Dinh","Nam Định","Nghệ An","Ninh Thuận","Ninh Bình","Nha Trang","Ninh Chữ",
-#     "Phố đi bộ hồ Gươm","Phố đi bộ Nguyễn Huệ","Phan Thiết","Phú Yên","Phú Thọ","Pù Luông","Phú Quốc",
-#     "Phú Quý","Quảng Trị","Quảng Nam","Quảng Ngãi","Quảng Bình","Quảng Ninh","Quan Lạn","Quy Nhơn",
-#     "Sóc Trăng","Sơn La","Sầm Sơn","Sóc Sơn","Sa Pa","Trà Vinh","Tiền Giang","Tây Ninh","Tuyên Quang",
-#     "Trà Sư","Tà Xùa","Trạm Tấu","Thái Nguyên","TP HCM","Thanh Hóa","Tú Lệ","Tam Cốc - Bích Động",
-#     "Tam Đảo","Thừa Thiên Huế","Thái Bình","Vị Thanh","Vườn quốc gia Pù Mát","Vườn quốc gia Bạch Mã",
-#     "Vườn quốc gia Cúc Phương","Vườn quốc gia Cát Tiên","Vĩnh Long","Vịnh Lan Hạ","Vịnh Hạ Long",
-#     "Vũng Tàu","Vĩnh Phúc","Y Tý","Yên Bái"
-# ]
-# print(len(
-# CANONICAL))
-# ALIASES = {
-#     r"TP\.?\s*HCM": "TP HCM",
-#     r"TPHCM": "TP HCM",
-#     r"Tp\.?\s*Hồ\s*Chí\s*Minh": "TP HCM",
-#     r"Thành\s+phố\s+Hồ\s+Chí\s+Minh": "TP HCM",
-#     r"Hoà\s*Bình": "Hòa Bình",
-#     r"Đăk\s*Nông": "Đắk Nông",
-#     r"Lý\s*Sơn": "Lý Sơn",
-#     r"VQG\s*Cát\s*Tiên": "Vườn quốc gia Cát Tiên",
-# }
+CANONICAL = [
+    "An Giang", "Bà Rịa - Vũng Tàu", "Bạc Liêu", "Bắc Giang", "Bắc Kạn", "Bắc Ninh",
+    "Bến Tre", "Bình Dương", "Bình Định", "Bình Phước", "Bình Thuận", "Cà Mau",
+    "Cao Bằng", "Cần Thơ", "Đà Nẵng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", "Đồng Tháp",
+    "Gia Lai", "Hà Giang", "Hà Nam", "Hà Nội", "Hà Tĩnh", "Hải Dương", "Hải Phòng",
+    "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum",
+    "Lai Châu", "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An",
+    "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam",
+    "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", "Sơn La", "Tây Ninh",
+    "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang",
+    "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc", "Yên Bái",
+    "TP HCM",  # Thành phố Hồ Chí Minh
+    "Cần Thơ", # Thành phố trực thuộc TW
+    "Đà Nẵng", # Thành phố trực thuộc TW
+    "Hải Phòng", # Thành phố trực thuộc TW
+    "Hà Nội"   # Thủ đô
+]
+print(len(
+CANONICAL))
+ALIASES = {
+    r"TP\.?\s*HCM": "TP HCM",
+    r"TPHCM": "TP HCM",
+    r"Tp\.?\s*Hồ\s*Chí\s*Minh": "TP HCM",
+    r"Thành\s+phố\s+Hồ\s+Chí\s+Minh": "TP HCM",
+    r"Hoà\s*Bình": "Hòa Bình",
+    r"Đăk\s*Nông": "Đắk Nông",
+    r"Lý\s*Sơn": "Lý Sơn",
+    r"VQG\s*Cát\s*Tiên": "Vườn quốc gia Cát Tiên",
+}
 
-# def normalize_text(s: str) -> str:
-#     s = re.sub(r"\s+", " ", s.strip())
-#     for pat, rep in ALIASES.items():
-#         s = re.sub(pat, rep, s, flags=re.IGNORECASE)
-#     s = re.sub(r"\s*-\s*", " - ", s)
-#     return s
+def normalize_text(s: str) -> str:
+    s = re.sub(r"\s+", " ", s.strip())
+    for pat, rep in ALIASES.items():
+        s = re.sub(pat, rep, s, flags=re.IGNORECASE)
+    s = re.sub(r"\s*-\s*", " - ", s)
+    return s
 
-# def make_name_pattern(names):
-#     def to_piece(name: str) -> str:
-#         piece = re.escape(name)
-#         piece = piece.replace(r"\ -\ ", r"\s*-\s*").replace(r"\ ", r"\s+")
-#         return piece
-#     names = sorted(names, key=len, reverse=True)
-#     pattern = r"(?<!\w)(" + "|".join(to_piece(n) for n in names) + r")(?!\w)"
-#     return re.compile(pattern, flags=re.IGNORECASE)
+def make_name_pattern(names):
+    def to_piece(name: str) -> str:
+        piece = re.escape(name)
+        piece = piece.replace(r"\ -\ ", r"\s*-\s*").replace(r"\ ", r"\s+")
+        return piece
+    names = sorted(names, key=len, reverse=True)
+    pattern = r"(?<!\w)(" + "|".join(to_piece(n) for n in names) + r")(?!\w)"
+    return re.compile(pattern, flags=re.IGNORECASE)
 
-# NAME_RE = make_name_pattern(CANONICAL)
+NAME_RE = make_name_pattern(CANONICAL)
 
-# # mapping tên "đã chuẩn hoá khoảng trắng" -> tên chuẩn
-# def squash(x: str) -> str:
-#     return re.sub(r"\s+", " ", x.strip()).lower()
+# mapping tên "đã chuẩn hoá khoảng trắng" -> tên chuẩn
+def squash(x: str) -> str:
+    return re.sub(r"\s+", " ", x.strip()).lower()
 
-# CANON_MAP = {squash(c): c for c in CANONICAL}
+CANON_MAP = {squash(c): c for c in CANONICAL}
 
-# # ---- đọc & group
-# with open(INPUT_FILE, "r", encoding="utf-8") as f:
-#     raw_lines = [ln.strip() for ln in f if ln.strip()]
+# ---- đọc & group
+with open(INPUT_FILE, "r", encoding="utf-8") as f:
+    raw_lines = [ln.strip() for ln in f if ln.strip()]
 
-# groups = defaultdict(list)
-# others = []
+groups = defaultdict(list)
+others = []
 
-# for ln in raw_lines:
-#     text = normalize_text(ln)
-#     m = NAME_RE.search(text)
-#     if m:
-#         matched = normalize_text(m.group(1))
-#         canon = CANON_MAP.get(squash(matched), matched)  # ánh xạ về tên chuẩn
-#         groups[canon].append(ln)
-#     else:
-#         others.append(ln)
+for ln in raw_lines:
+    text = normalize_text(ln)
+    m = NAME_RE.search(text)
+    if m:
+        matched = normalize_text(m.group(1))
+        canon = CANON_MAP.get(squash(matched), matched)  # ánh xạ về tên chuẩn
+        groups[canon].append(ln)
+    else:
+        others.append(ln)
 
-# # ---- ghi kết quả
-# with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-#     for name in CANONICAL:
-#         if groups.get(name):
-#             f.write(f"\n===== {name} =====\n")
-#             for line in groups[name]:
-#                 f.write(line + "\n")
-#     if others:
-#         f.write("\n===== KHÁC =====\n")
-#         for line in others:
-#             f.write(line + "\n")
+# ---- ghi kết quả
+with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+    for name in CANONICAL:
+        if groups.get(name):
+            f.write(f"\n===== {name} =====\n")
+            for line in groups[name]:
+                f.write(line + "\n")
+    if others:
+        f.write("\n===== KHÁC =====\n")
+        for line in others:
+            f.write(line + "\n")
 
-# print(f"✅ Đã sắp xếp và lưu vào: {OUTPUT_FILE}")
+print(f"✅ Đã sắp xếp và lưu vào: {OUTPUT_FILE}")
 

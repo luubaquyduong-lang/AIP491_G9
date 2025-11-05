@@ -5,12 +5,18 @@ from sentence_transformers import SentenceTransformer
 # Load mô hình Bi-Encoder dùng trong dự án
 model = SentenceTransformer("bkai-foundation-models/vietnamese-bi-encoder")
 
-# Đọc từng passage từ file output.jsonl
 passages = []
-with open('D:\duongluuba\AIP491_G9\Data\processed\corpus_chunks_2.jsonl', 'r', encoding='utf-8') as f:
+with open(r"D:\duongluuba\AIP491_G9\Data\processed\data_final_sorted.jsonl", "r", encoding="utf-8") as f:
     for line in f:
-        obj = json.loads(line)
-        passages.append(obj['passage'])
+        try:
+            obj = json.loads(line)
+            passages.append(obj["passage"])
+        except json.JSONDecodeError:
+            print("⚠️ Lỗi JSON ở dòng:", len(passages))
+            continue
+
+print("✅ Đọc được:", len(passages))
+
 
 # Tạo embedding (batch encode)
 embeddings = model.encode(passages, show_progress_bar=True)
