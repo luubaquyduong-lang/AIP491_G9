@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Lấy API key của OpenAI từ biến môi trường
-api_key = os.getenv("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")
+api_key = "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"
 
 # Khởi tạo client để kết nối với API của OpenAI
 client = OpenAI(api_key=api_key)
@@ -70,7 +70,7 @@ def classify_small_talk(input_sentence, language):
 
     # Gọi API GPT để phân loại câu hỏi
     completion = client.chat.completions.create(
-      model="gpt-4o-mini",
+      model="gpt-4.1-mini",
       messages=[
         {"role": "user", "content": prompt}
       ]
@@ -90,18 +90,18 @@ def create_new_prompt(prompt, chat_history, user_query, **kwargs):
     return new_prompt
 
 # Hàm chính điều phối toàn bộ quá trình chatbot
-def chatbot(conversation_history: List[Dict[str, str]], language) -> str:
+def chatbot(conversation_history: List[Dict[str, str]], language = "vi") -> str:
     # Lấy câu hỏi cuối cùng mà người dùng nhập vào
     user_query = conversation_history[-1]['content']
 
     # Tải dữ liệu corpus chứa thông tin du lịch đã được lưu
-    meta_corpus = load_meta_corpus(r"../data/corpus_chunks.jsonl")
+    meta_corpus = load_meta_corpus(r"D:\duongluuba\AIP491_G9\Data\processed\corpus_chunks_4347.jsonl")
 
     # Khởi tạo bộ truy xuất dữ liệu (retriever) dùng BM25 + Bi-encoder
     retriever = Retriever(
         corpus=meta_corpus,
-        corpus_emb_path=r"../data/corpus_embedding_w150.pkl",
-        model_name="bkai-foundation-models/vietnamese-bi-encoder"
+        corpus_emb_path=r"D:\duongluuba\AIP491_G9\Data\embeddings\model_base\corpus_embedding_e5_foundation_models.pkl",
+        model_name="intfloat/multilingual-e5-base"
     )
 
     # Gọi hàm phân loại small talk để kiểm tra loại câu hỏi
@@ -168,17 +168,34 @@ def chatbot(conversation_history: List[Dict[str, str]], language) -> str:
         print("Unexpected response from the model.")
         return "Xin lỗi, hệ thống không xử lý được."
     
-# Hàm chạy thử chatbot bằng giao diện dòng lệnh
+    # Kết thúc hàm chatbot
+#   
 def main():
-    # Nhập câu hỏi từ người dùng
-    user_query = input("User query: ")
+    print("🤖 Chatbot du lịch Việt Nam sẵn sàng! (gõ 'exit' để thoát)\n")
 
-    # Gọi chatbot (cần truyền lịch sử hội thoại và ngôn ngữ)
-    result = chatbot(user_query)
+    # Tạo lịch sử hội thoại ban đầu
+    conversation_history = []
+    language = "vi"
 
-    # In kết quả ra màn hình
-    print(result)
+    while True:
+        user_query = input("👤 Bạn: ").strip()
+        if user_query.lower() in ["exit", "quit", "bye", "thoát","e"]:
+            print("👋 Tạm biệt! Chúc bạn có chuyến đi vui vẻ!")
+            break
 
-# Chạy chương trình khi file được thực thi trực tiếp
+        # Thêm câu hỏi vào lịch sử
+        conversation_history.append({"role": "user", "content": user_query})
+
+        # Gọi chatbot xử lý
+        try:
+            result = chatbot(conversation_history, language)
+            print(f"🤖 Chatbot: {result}\n")
+            # Lưu phản hồi vào lịch sử hội thoại
+            conversation_history.append({"role": "assistant", "content": result})
+        except Exception as e:
+            print("⚠️ Lỗi khi xử lý:", e)
+            break
+
+
 if __name__ == "__main__":
     main()

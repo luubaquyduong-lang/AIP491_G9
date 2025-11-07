@@ -3,7 +3,7 @@ import pickle
 from sentence_transformers import SentenceTransformer
 
 # Load mô hình Bi-Encoder dùng trong dự án
-model = SentenceTransformer("bkai-foundation-models/vietnamese-bi-encoder")
+model = SentenceTransformer("bkai-foundation-models/vietnamese-bi-encoder") #intfloat/multilingual-e5-base
 
 passages = []
 with open(r"D:\duongluuba\AIP491_G9\Data\processed\data_final_sorted.jsonl", "r", encoding="utf-8") as f:
