@@ -69,7 +69,7 @@ def classify_small_talk(input_sentence, language):
 
     # Gọi API GPT để phân loại câu hỏi
     completion = client.chat.completions.create(
-      model="gpt-4.0-mini",
+      model="gpt-4o-mini",
       messages=[
         {"role": "user", "content": prompt}
       ]
