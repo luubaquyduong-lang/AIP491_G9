@@ -103,19 +103,19 @@ export const Chat = () => {
           </h1>
         </div>
         <div className="flex items-center gap-4">
-        <div className="flex items-center space-x-2">
-          <label className={`text-sm font-medium ${theme === "light" ? "text-black" : "text-white"}`}>
-            {language === "Tiếng Việt" ? "Chọn ngôn ngữ:" : "Choose language:"}
-          </label>
-          <select
-            value={language}
-            onChange={handleLanguageChange}
-            className={`p-2 rounded-2xl border ${theme === "light" ? "bg-white text-black border-gray-300" : "bg-gray-700 text-white border-gray-600"}`}
-          >
-            <option value="Tiếng Việt">Tiếng Việt</option>
-            <option value="English">English</option>
-          </select>
-        </div>
+          <div className="flex items-center space-x-2">
+            <label className={`text-sm font-medium ${theme === "light" ? "text-black" : "text-white"}`}>
+              {language === "Tiếng Việt" ? "Chọn ngôn ngữ:" : "Choose language:"}
+            </label>
+            <select
+              value={language}
+              onChange={handleLanguageChange}
+              className={`p-2 rounded-2xl border ${theme === "light" ? "bg-white text-black border-gray-300" : "bg-gray-700 text-white border-gray-600"}`}
+            >
+              <option value="Tiếng Việt">Tiếng Việt</option>
+              <option value="English">English</option>
+            </select>
+          </div>
 
           <ThemeSwitch theme={theme} toggleTheme={toggleTheme} />
           <UserButton />
@@ -137,11 +137,10 @@ export const Chat = () => {
                   <li key={index} className="text-center">
                     <Button
                       onClick={() => handleSuggestionClick(question)}
-                      className={`inline-block p-2 rounded-2xl shadow-md cursor-pointer transition-colors duration-200 ${
-                        theme === "light"
+                      className={`inline-block p-2 rounded-2xl shadow-md cursor-pointer transition-colors duration-200 ${theme === "light"
                           ? "bg-gray-300 text-black hover:bg-blue-600"
                           : "bg-gray-700 text-white hover:bg-yellow-400"
-                      }`}
+                        }`}
                     >
                       {question}
                     </Button>
@@ -157,13 +156,12 @@ export const Chat = () => {
                   className={`mb-4 ${m.role === "user" ? "text-right" : "text-left"}`}
                 >
                   <div
-                    className={`inline-block p-3 rounded-2xl shadow-md ${
-                      m.role === "user"
+                    className={`inline-block p-3 rounded-2xl shadow-md ${m.role === "user"
                         ? theme === "light"
                           ? "bg-gray-200 text-black"
                           : "bg-gray-700 text-white"
                         : ""
-                    }`}
+                      }`}
                   >
                     <p
                       dangerouslySetInnerHTML={{
@@ -200,11 +198,10 @@ export const Chat = () => {
           />
           <Button
             type="submit"
-            className={`px-4 py-2 rounded-full transition-colors duration-200 ${
-              theme === "light"
+            className={`px-4 py-2 rounded-full transition-colors duration-200 ${theme === "light"
                 ? "text-black bg-gray-300 hover:bg-blue-600"
                 : "text-black bg-yellow-400 hover:bg-yellow-500"
-            }`}
+              }`}
           >
             {language === "Tiếng Việt" ? "Gửi" : "Send"}
           </Button>

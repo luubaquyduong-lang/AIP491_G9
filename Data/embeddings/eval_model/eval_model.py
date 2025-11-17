@@ -615,7 +615,6 @@ print(f"Queries: {len(queries)} | Corpus: {len(corpus)} | Qrels: {len(qrels)}")
 BASE_MODEL = "bkai-foundation-models/vietnamese-bi-encoder"
 # bkai-foundation-models/vietnamese-bi-encoder
 # intfloat/multilingual-e5-base
-# sentence‑transformers/all‑mpnet‑base‑v2
 # sentence-transformers/all-mpnet-base-v2
 # hiieu/halong_embedding
 # SentenceTransformer based on intfloat/multilingual-e5-base

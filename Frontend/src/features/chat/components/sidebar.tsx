@@ -21,8 +21,12 @@ export const Sidebar = () => {
   useEffect(() => {
     fetch("/api/chats")
       .then((res) => res.json())
+
       .then((data) => {
         setHistory(data);
+        console.log("DATA FROM API:", data);
+        console.log("IS ARRAY?", Array.isArray(data));
+        setHistory(Array.isArray(data) ? data : []);
       })
       .catch((err) => console.error("Error fetching chat history:", err));
   }, []);
@@ -31,9 +35,9 @@ export const Sidebar = () => {
       {sidebarOpen && (
         <aside
           className={`relative flex-shrink-0 max-w-xs border-r 
-                      ${theme === "light" 
-                        ? "bg-gray-200 text-black" 
-                        : "bg-gray-800"} 
+                      ${theme === "light"
+              ? "bg-gray-200 text-black"
+              : "bg-gray-800"} 
                         p-4 pt-10 overflow-visible`}
           style={{
             lineHeight: "30px",
@@ -58,8 +62,8 @@ export const Sidebar = () => {
                 onClick={startNewChat}
                 className={`p-2 rounded-full transition-colors duration-200
                             ${theme === "light"
-                            ? "hover:bg-blue-600 text-black"
-                            : "hover:bg-yellow-400 text-white"}`}>
+                    ? "hover:bg-blue-600 text-black"
+                    : "hover:bg-yellow-400 text-white"}`}>
                 <PlusCircleIcon className="w-8 h-8" />
               </Button>
 
@@ -77,8 +81,8 @@ export const Sidebar = () => {
                 onClick={toggleSidebar}
                 className={`p-2 rounded-full transition-colors duration-200 overflow-visible
                             ${theme === "light"
-                            ? "hover:bg-blue-600 text-black"
-                            : "hover:bg-yellow-400 text-white"}`}>
+                    ? "hover:bg-blue-600 text-black"
+                    : "hover:bg-yellow-400 text-white"}`}>
                 <ArrowLeftIcon className="w-7 h-7" />
               </Button>
 
@@ -113,7 +117,7 @@ export const Sidebar = () => {
             <FolderIcon className="w-5 h-5" />
             {language === "Tiếng Việt" ? "Lịch sử trò chuyện" : "Chat history"}
           </h1>
-          
+
 
           {history.length === 0 ? (
             <p className="text-center text-muted-foreground">
@@ -126,15 +130,14 @@ export const Sidebar = () => {
                   <li
                     key={chat.id}
                     className={`p-2 rounded-2xl cursor-pointer transition-colors duration-200
-                                    ${
-                                      selectedChat === chat.id
-                                        ? theme === "light"
-                                          ? "bg-gray-300"
-                                          : "bg-gray-700"
-                                        : theme === "light"
-                                          ? "hover:bg-blue-600"
-                                          : "hover:bg-yellow-400"
-                                    }`}
+                                    ${selectedChat === chat.id
+                        ? theme === "light"
+                          ? "bg-gray-300"
+                          : "bg-gray-700"
+                        : theme === "light"
+                          ? "hover:bg-blue-600"
+                          : "hover:bg-yellow-400"
+                      }`}
                     style={{
                       display: "block",
                       whiteSpace: "nowrap",

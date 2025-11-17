@@ -11,8 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Lấy API key của OpenAI từ biến môi trường
-api_key = "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"
-
+api_key = os.getenv("OPENAI_API_KEY")
 # Khởi tạo client để kết nối với API của OpenAI
 client = OpenAI(api_key=api_key)
 
@@ -70,7 +69,7 @@ def classify_small_talk(input_sentence, language):
 
     # Gọi API GPT để phân loại câu hỏi
     completion = client.chat.completions.create(
-      model="gpt-4.1-mini",
+      model="gpt-4.0-mini",
       messages=[
         {"role": "user", "content": prompt}
       ]
@@ -95,13 +94,13 @@ def chatbot(conversation_history: List[Dict[str, str]], language = "vi") -> str:
     user_query = conversation_history[-1]['content']
 
     # Tải dữ liệu corpus chứa thông tin du lịch đã được lưu
-    meta_corpus = load_meta_corpus(r"D:\duongluuba\AIP491_G9\Data\processed\corpus_chunks_4347.jsonl")
+    meta_corpus = load_meta_corpus(r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_sorted.jsonl")
 
     # Khởi tạo bộ truy xuất dữ liệu (retriever) dùng BM25 + Bi-encoder
     retriever = Retriever(
         corpus=meta_corpus,
-        corpus_emb_path=r"D:\duongluuba\AIP491_G9\Data\embeddings\model_base\corpus_embedding_e5_foundation_models.pkl",
-        model_name="intfloat/multilingual-e5-base"
+        corpus_emb_path=r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\\Embedding_data\\embeding_by_model_fine_e5.pkl",
+        model_name="D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\Model_train\intfloat_multilingual_e5_base_fine_tuning"
     )
 
     # Gọi hàm phân loại small talk để kiểm tra loại câu hỏi
@@ -171,16 +170,15 @@ def chatbot(conversation_history: List[Dict[str, str]], language = "vi") -> str:
     # Kết thúc hàm chatbot
 #   
 def main():
-    print("🤖 Chatbot du lịch Việt Nam sẵn sàng! (gõ 'exit' để thoát)\n")
-
+    print(" Chatbot du lịch Việt Nam sẵn sàng! (gõ 'exit' để thoát)\n")
     # Tạo lịch sử hội thoại ban đầu
     conversation_history = []
     language = "vi"
 
     while True:
-        user_query = input("👤 Bạn: ").strip()
+        user_query = input(" Bạn: ").strip()
         if user_query.lower() in ["exit", "quit", "bye", "thoát","e"]:
-            print("👋 Tạm biệt! Chúc bạn có chuyến đi vui vẻ!")
+            print(" Tạm biệt! Chúc bạn có chuyến đi vui vẻ!")
             break
 
         # Thêm câu hỏi vào lịch sử
@@ -189,11 +187,11 @@ def main():
         # Gọi chatbot xử lý
         try:
             result = chatbot(conversation_history, language)
-            print(f"🤖 Chatbot: {result}\n")
+            print(f" Chatbot: {result}\n")
             # Lưu phản hồi vào lịch sử hội thoại
             conversation_history.append({"role": "assistant", "content": result})
         except Exception as e:
-            print("⚠️ Lỗi khi xử lý:", e)
+            print(" Lỗi khi xử lý:", e)
             break
 
 

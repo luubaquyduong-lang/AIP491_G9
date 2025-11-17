@@ -21,16 +21,16 @@ export async function POST(req: NextRequest) {
     console.log("validateM: ", validatedMessage);
     const chat = chatId
       ? await prisma.chat.findUnique({
-          where: { id: chatId },
-          include: { messages: true },
-        })
+        where: { id: chatId },
+        include: { messages: true },
+      })
       : await prisma.chat.create({
-          data: {
-            userId,
-            title: validatedMessage.content,
-          },
-          include: { messages: true },
-        });
+        data: {
+          userId,
+          title: validatedMessage.content,
+        },
+        include: { messages: true },
+      });
 
     if (!chat) {
       notFound();
@@ -42,10 +42,21 @@ export async function POST(req: NextRequest) {
     console.log("user mess: ", userMessage)
     const messages = chat.messages.concat(userMessage);
     console.log(language)
-    const response = await fetch("http://localhost:8000/process", {
+    // const response = await fetch("http://localhost:8000/process", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ messages, id: chat.id, language }),
+    // });
+    const response = await fetch("http://127.0.0.1:8000/process", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages, id: chat.id, language }),
+      body: JSON.stringify({
+        messages: messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        language: language,
+      }),
     });
 
     if (!response.ok) {

@@ -84,8 +84,8 @@ def split_text_by_sentence_balanced(text: str, max_words: int, min_words: int) -
 # ==========================
 # MAIN
 # ==========================
-input_file  = r"D:\duongluuba\AIP491_G9\Data\processed\data_final_sorted.txt"
-output_file = r"D:\duongluuba\AIP491_G9\Data\processed\data_final_sorted.jsonl"
+input_file  = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_4347_sorted.txt"
+output_file = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_4347_sorted_v1.jsonl"
 
 output = []
 line_id = 0
