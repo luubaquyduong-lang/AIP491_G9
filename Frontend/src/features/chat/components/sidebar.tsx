@@ -63,7 +63,7 @@ export const Sidebar = () => {
                 className={`p-2 rounded-full transition-colors duration-200
                             ${theme === "light"
                     ? "hover:bg-blue-600 text-black"
-                    : "hover:bg-yellow-400 text-white"}`}>
+                    : "hover:bg-blue-400 text-white"}`}>
                 <PlusCircleIcon className="w-8 h-8" />
               </Button>
 
@@ -82,7 +82,7 @@ export const Sidebar = () => {
                 className={`p-2 rounded-full transition-colors duration-200 overflow-visible
                             ${theme === "light"
                     ? "hover:bg-blue-600 text-black"
-                    : "hover:bg-yellow-400 text-white"}`}>
+                    : "hover:bg-blue-400 text-white"}`}>
                 <ArrowLeftIcon className="w-7 h-7" />
               </Button>
 
@@ -101,7 +101,7 @@ export const Sidebar = () => {
             <Button
               onClick={startNewChat}
               className={`group w-full max-w-sm px-4 py-2 mb-4 mt-14 rounded-full flex items-center justify-between gap-2 transition-colors duration-200
-                ${theme === "light" ? "text-black bg-gray-300 hover:bg-blue-600" : "text-black bg-yellow-400 hover:bg-yellow-500"} 
+                ${theme === "light" ? "text-black bg-gray-300 hover:bg-blue-600" : "text-black bg-blue-400 hover:bg-blue-500"} 
                 text-lg font-bold`}
             >
               <div className="flex items-center gap-5">
@@ -136,7 +136,7 @@ export const Sidebar = () => {
                           : "bg-gray-700"
                         : theme === "light"
                           ? "hover:bg-blue-600"
-                          : "hover:bg-yellow-400"
+                          : "hover:bg-blue-400"
                       }`}
                     style={{
                       display: "block",

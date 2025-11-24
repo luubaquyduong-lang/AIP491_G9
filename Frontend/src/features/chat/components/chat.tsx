@@ -8,9 +8,14 @@ import { useChat } from "../hooks/use-chat";
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { TypingIndicator } from "@/components/TypingIndicator";
-import { FolderIcon, ChatBubbleBottomCenterTextIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
+import {
+  FolderIcon,
+  ChatBubbleBottomCenterTextIcon,
+  PlusCircleIcon,
+} from "@heroicons/react/24/solid";
 
 export const Chat = () => {
+  // Hook tùy chỉnh quản lý trạng thái chat
   const {
     theme,
     messages,
@@ -27,8 +32,10 @@ export const Chat = () => {
     handleLanguageChange,
   } = useChat();
 
+  // Tham chiếu đến container chứa tin nhắn để tự động scroll cuối
   const chatParent = useRef<HTMLUListElement>(null);
 
+  // Gợi ý câu hỏi ban đầu tùy theo ngôn ngữ
   const faqSuggestions = [
     language === "Tiếng Việt"
       ? "Giới thiệu về thành phố Hồ Chí Minh."
@@ -44,6 +51,7 @@ export const Chat = () => {
       : "Where to visit in the ancient capital of Hue.",
   ];
 
+  // Tự scroll xuống cuối khi danh sách message thay đổi
   useEffect(() => {
     const domNode = chatParent.current;
     if (domNode) {
@@ -51,95 +59,135 @@ export const Chat = () => {
     }
   }, [messages]);
 
+  // Cập nhật input tin nhắn
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
   };
 
   return (
     <section
-      className={`flex flex-col flex-grow ${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"}`}
+      // Thay đổi theme nền + text
+      className={`flex flex-col flex-grow ${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"
+        }`}
       style={{
+        // Màu scroll bar theo theme
         scrollbarColor:
           theme === "light" ? "#000000 #f0f0f0" : "#ffffff #000000",
         scrollbarWidth: "thin",
       }}
     >
+      {/* HEADER */}
       <header className="p-4 border-b flex justify-between items-center">
+        {/* Nút sidebar + New Chat (ẩn khi sidebar đang mở) */}
         {!sidebarOpen && (
           <div className="flex gap-4 items-center">
+            {/* Nút mở sidebar */}
             <div className="relative group">
               <Button
                 onClick={toggleSidebar}
                 className={`p-2 rounded-full transition-colors duration-200 
-                          ${theme === "light" ? "hover:bg-blue-600 text-black" : "hover:bg-yellow-400 text-white"}`}
+                  ${theme === "light"
+                    ? "hover:bg-blue-600 text-black"
+                    : "hover:bg-blue-400 text-white"
+                  }`}
               >
                 <FolderIcon className="w-8 h-8" />
               </Button>
+
+              {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max p-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 {language === "Tiếng Việt" ? "Mở thanh bên" : "Open sidebar"}
               </div>
             </div>
 
+            {/* Nút tạo cuộc trò chuyện mới */}
             <div className="relative group">
               <Link href="/">
                 <Button
                   onClick={startNewChat}
                   className={`p-2 rounded-full transition-colors duration-200 
-                            ${theme === "light" ? "hover:bg-blue-600 text-black" : "hover:bg-yellow-400 text-white"}`}
+                    ${theme === "light"
+                      ? "hover:bg-blue-600 text-black"
+                      : "hover:bg-blue-400 text-white"
+                    }`}
                 >
                   <PlusCircleIcon className="w-8 h-8" />
                 </Button>
               </Link>
+
+              {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max p-1 text-sm text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 {language === "Tiếng Việt" ? "Cuộc trò chuyện mới" : "New Chat"}
               </div>
             </div>
           </div>
         )}
+
+        {/* Tên chatbot */}
         <div className="flex items-center gap-2">
           <ChatBubbleBottomCenterTextIcon className="w-10 h-10" />
           <h1 className="text-2xl font-bold" style={{ fontSize: "2rem" }}>
-            {language === "Tiếng Việt" ? "Chatbot Du lịch Việt Nam" : "Vietnam Travel Chatbot"}
+            {language === "Tiếng Việt"
+              ? "Chatbot Du lịch Việt Nam"
+              : "Vietnam Travel Chatbot"}
           </h1>
         </div>
+
+        {/* Khu vực chọn ngôn ngữ + theme + UserButton */}
         <div className="flex items-center gap-4">
           <div className="flex items-center space-x-2">
-            <label className={`text-sm font-medium ${theme === "light" ? "text-black" : "text-white"}`}>
+            <label
+              className={`text-sm font-medium ${theme === "light" ? "text-black" : "text-white"
+                }`}
+            >
               {language === "Tiếng Việt" ? "Chọn ngôn ngữ:" : "Choose language:"}
             </label>
+
+            {/* Dropdown ngôn ngữ */}
             <select
               value={language}
               onChange={handleLanguageChange}
-              className={`p-2 rounded-2xl border ${theme === "light" ? "bg-white text-black border-gray-300" : "bg-gray-700 text-white border-gray-600"}`}
+              className={`p-2 rounded-2xl border ${theme === "light"
+                ? "bg-white text-black border-gray-300"
+                : "bg-gray-700 text-white border-gray-600"
+                }`}
             >
               <option value="Tiếng Việt">Tiếng Việt</option>
               <option value="English">English</option>
             </select>
           </div>
 
+          {/* Nút đổi theme */}
           <ThemeSwitch theme={theme} toggleTheme={toggleTheme} />
+
+          {/* Clerk nút user (avatar dropdown) */}
           <UserButton />
         </div>
       </header>
 
+      {/* PHẦN HIỂN THỊ TIN NHẮN */}
       <section
         className="flex-grow px-8 lg:px-32 xl:px-64 py-4 overflow-y-auto"
         ref={chatParent}
       >
         <div className="max-w-4xl mx-auto">
+          {/* Nếu chưa có message → hiển thị gợi ý FAQ */}
           {messages.length === 0 ? (
             <div className="flex flex-col items-center space-y-4 mt-4">
               <p className="text-lg font-semibold">
-                {language === "Tiếng Việt" ? "Một vài câu hỏi thường gặp:" : "A few common questions:"}
+                {language === "Tiếng Việt"
+                  ? "Một vài câu hỏi thường gặp:"
+                  : "A few common questions:"}
               </p>
+
               <ul className="space-y-4">
                 {faqSuggestions.map((question, index) => (
                   <li key={index} className="text-center">
                     <Button
                       onClick={() => handleSuggestionClick(question)}
                       className={`inline-block p-2 rounded-2xl shadow-md cursor-pointer transition-colors duration-200 ${theme === "light"
-                          ? "bg-gray-300 text-black hover:bg-blue-600"
-                          : "bg-gray-700 text-white hover:bg-yellow-400"
+                        ? "bg-gray-300 text-black hover:bg-blue-600"
+                        : "bg-gray-700 text-white hover:bg-blue-400"
                         }`}
                     >
                       {question}
@@ -150,32 +198,42 @@ export const Chat = () => {
             </div>
           ) : (
             <ul>
+              {/* Render danh sách tin nhắn */}
               {messages.map((m, index) => (
                 <li
                   key={index}
-                  className={`mb-4 ${m.role === "user" ? "text-right" : "text-left"}`}
+                  className={`mb-4 ${m.role === "user" ? "text-right" : "text-left"
+                    }`}
                 >
                   <div
                     className={`inline-block p-3 rounded-2xl shadow-md ${m.role === "user"
-                        ? theme === "light"
-                          ? "bg-gray-200 text-black"
-                          : "bg-gray-700 text-white"
-                        : ""
+                      ? theme === "light"
+                        ? "bg-gray-200 text-black"
+                        : "bg-gray-700 text-white"
+                      : ""
                       }`}
                   >
+                    {/* Hiển thị nội dung tin nhắn + parse markdown cơ bản */}
                     <p
                       dangerouslySetInnerHTML={{
                         __html: m.content
                           .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
                           .replace(/\n/g, "<br />")
-                          .replace(/###\s(.*?):/g, "<h3>$1:</h3>")
+                          .replace(/###\s(.*?):/g, "<h3>$1:</h3>"),
                       }}
                     ></p>
                   </div>
                 </li>
               ))}
+
+              {/* Hiển thị hoạt ảnh typing indicator */}
               {isTyping && (
-                <li className={`text-left inline-flex items-start max-w-fit ${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"}`}>
+                <li
+                  className={`text-left inline-flex items-start max-w-fit ${theme === "light"
+                    ? "bg-white text-black"
+                    : "bg-gray-900 text-white"
+                    }`}
+                >
                   <TypingIndicator />
                 </li>
               )}
@@ -184,29 +242,43 @@ export const Chat = () => {
         </div>
       </section>
 
+      {/* KHUNG NHẬP TIN NHẮN */}
       <form
         onSubmit={handleSubmit}
-        className={`p-4 flex items-center justify-between rounded-t-xl ${theme === "light" ? "white" : "black"}`}
+        className={`p-4 flex items-center justify-between rounded-t-xl ${theme === "light" ? "white" : "black"
+          }`}
         style={{ fontSize: "20px" }}
       >
         <div className="max-w-4xl mx-auto w-full flex items-center gap-4">
+          {/* Ô nhập nội dung */}
           <Input
-            className={`flex-grow p-3 rounded-2xl ${theme === "light" ? "bg-white text-black" : "bg-gray-700 text-white"}`}
-            placeholder={language === "Tiếng Việt" ? "Nhập tin nhắn của bạn..." : "Type your message..."}
+            className={`flex-grow p-3 rounded-2xl ${theme === "light"
+              ? "bg-white text-black"
+              : "bg-gray-700 text-white"
+              }`}
+            placeholder={
+              language === "Tiếng Việt"
+                ? "Nhập tin nhắn của bạn..."
+                : "Type your message..."
+            }
             value={input}
             onChange={handleInputChange}
           />
+
+          {/* Nút gửi */}
           <Button
             type="submit"
             className={`px-4 py-2 rounded-full transition-colors duration-200 ${theme === "light"
-                ? "text-black bg-gray-300 hover:bg-blue-600"
-                : "text-black bg-yellow-400 hover:bg-yellow-500"
+              ? "text-black bg-gray-300 hover:bg-blue-600"
+              : "text-black bg-blue-400 hover:bg-blue-500"
               }`}
           >
             {language === "Tiếng Việt" ? "Gửi" : "Send"}
           </Button>
         </div>
       </form>
+
+      {/* Ghi chú cảnh báo cuối trang */}
       <p
         className="p-2 text-center flex-shrink-0 text-gray-300"
         style={{ fontSize: "15px" }}

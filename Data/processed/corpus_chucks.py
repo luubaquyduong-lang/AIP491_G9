@@ -87,33 +87,34 @@ def split_text_by_sentence_balanced(text: str, max_words: int, min_words: int) -
 input_file  = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_4347_sorted.txt"
 output_file = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_4347_sorted_v1.jsonl"
 
-output = []
-line_id = 0
 
-with open(input_file, 'r', encoding='utf-8') as f:
-    for line_num, raw in enumerate(f, start=1):
-        line = raw.strip()
-        if not line:
-            continue
-        # Bỏ qua header nhóm kiểu "===== Huế ====="
-        if line.startswith("=====") and line.endswith("====="):
-            continue
+# output = []
+# line_id = 0
 
-        title = f"output_paragraph_{line_num}"
-        chunks = split_text_by_sentence_balanced(line, MAX_LEN, MIN_LEN)
+# with open(input_file, 'r', encoding='utf-8') as f:
+#     for line_num, raw in enumerate(f, start=1):
+#         line = raw.strip()
+#         if not line:
+#             continue
+#         # Bỏ qua header nhóm kiểu "===== Huế ====="
+#         if line.startswith("=====") and line.endswith("====="):
+#             continue
 
-        for chunk in chunks:
-            obj = {
-                "title": title,
-                "passage": chunk,
-                "id": line_id,
-                "len": len(chunk.split())
-            }
-            output.append(obj)
-            line_id += 1
+#         title = f"output_paragraph_{line_num}"
+#         chunks = split_text_by_sentence_balanced(line, MAX_LEN, MIN_LEN)
 
-with open(output_file, 'w', encoding='utf-8') as f:
-    for item in output:
-        f.write(json.dumps(item, ensure_ascii=False) + '\n')
+#         for chunk in chunks:
+#             obj = {
+#                 "title": title,
+#                 "passage": chunk,
+#                 "id": line_id,
+#                 "len": len(chunk.split())
+#             }
+#             output.append(obj)
+#             line_id += 1
 
-print(f"✅ Đã xử lý xong và xuất {len(output)} đoạn vào {output_file}")
+# with open(output_file, 'w', encoding='utf-8') as f:
+#     for item in output:
+#         f.write(json.dumps(item, ensure_ascii=False) + '\n')
+
+# print(f"✅ Đã xử lý xong và xuất {len(output)} đoạn vào {output_file}")

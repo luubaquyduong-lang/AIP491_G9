@@ -51,7 +51,6 @@ def classify_small_talk(input_sentence, language):
     ###"Small talk" đề cập đến những chủ đề trò chuyện thông thường, không liên quan trực tiếp đến du lịch Việt Nam, chẳng hạn như chào hỏi, câu hỏi cá nhân, câu chuyện cười.
     Nếu câu hỏi không phải là small talk và liên quan đến du lịch, ẩm thực, điểm đến, hoạt động, bạn PHẢI có từ "no" trong câu trả lời và trả về "no."
     Nếu câu hỏi là small talk: Không trả lời câu hỏi mà hãy giới thiệu về chatbot tư vấn du lịch Việt Nam một cách ngắn gọn với giọng điệu cuốn hút bằng ngôn ngữ: {language}.
-
     ###Ví dụ:
     User query: "Chào bạn, hôm nay thế nào?"
     Response: "Cảm ơn bạn đã quan tâm! Mình là chatbot tư vấn du lịch Việt Nam, sẵn sàng hỗ trợ bạn khám phá các điểm đến tuyệt đẹp, món ăn hấp dẫn và nhiều hoạt động thú vị. Hãy hỏi mình bất cứ điều gì liên quan đến du lịch nhé! 😊"
