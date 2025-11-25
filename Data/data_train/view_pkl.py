@@ -25,13 +25,13 @@ def load_triplets(pkl_path, output_pkl=None, show_samples = 3):
         else:
             continue
         # Hiển thị vài mẫu đầu 
-        if 290 < i < 300:
+        if i < 10 :
             print(f"\n🔹 Mẫu {i+1}:")
             print(f"  {q}\n  {p}")
         i += 1
     print(f"\n✅ Tổng số mẫu hợp lệ: {len(triplets)}")
 if __name__ == "__main__":
-    pkl_file = r"C:\Users\Acer\Downloads\data_train_v2_part_151.pkl"
+    pkl_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_train\data_train_v1\data_train_singlequery_v1.pkl"
     output_pkl = r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_viewed.pkl"
     load_triplets(pkl_file, output_pkl)
 
