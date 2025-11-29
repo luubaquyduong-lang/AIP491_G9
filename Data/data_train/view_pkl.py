@@ -1,10 +1,9 @@
 
-import os, pickle, random, torch
-from pathlib import Path
-from sentence_transformers import SentenceTransformer, InputExample
+import os
 import pickle
+from sentence_transformers import InputExample
 
-def load_triplets(pkl_path, output_pkl=None, show_samples = 3):
+def load_triplets(pkl_path, show_samples = 10):
     """
     Đọc file .pkl chứa InputExample và hiển thị nội dung các mẫu.
     Nếu có negative -> in ra 3 trường, nếu không -> in ra query và positive.
@@ -25,16 +24,14 @@ def load_triplets(pkl_path, output_pkl=None, show_samples = 3):
         else:
             continue
         # Hiển thị vài mẫu đầu 
-        if i < 10 :
-            print(f"\n🔹 Mẫu {i+1}:")
+        if i < show_samples :
+            print(f"\n Mẫu {i+1}:")
             print(f"  {q}\n  {p}")
         i += 1
-    print(f"\n✅ Tổng số mẫu hợp lệ: {len(triplets)}")
+    print(f"\n Tổng số mẫu hợp lệ: {len(triplets)}")
 if __name__ == "__main__":
-    pkl_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_train\data_train_v1\data_train_singlequery_v1.pkl"
-    output_pkl = r"D:\duongluuba\AIP491_G9\Data\\embeddings\data_train_viewed.pkl"
-    load_triplets(pkl_file, output_pkl)
-
+    pkl_file= r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_train\data_train_v1\splits\test_pairs.pkl"
+    load_triplets(pkl_file)
 
 
 # import os, re, pickle

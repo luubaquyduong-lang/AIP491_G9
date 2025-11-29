@@ -10,6 +10,14 @@ SENT_SPLIT_RE = re.compile(r'(?<=[\.\!\?…])\s+')
 def count_words(s: str) -> int:
     return len(s.split())
 
+def first_sentence(text: str) -> str:
+    """Lấy câu đầu tiên của đoạn gốc."""
+    text = text.strip()
+    if not text:
+        return ""
+    parts = SENT_SPLIT_RE.split(text)
+    return parts[0].strip() if parts else text
+
 def split_text_by_sentence_balanced(text: str, max_words: int, min_words: int) -> list[str]:
     """
     Chia văn bản thành các chunk theo CÂU, mỗi chunk <= max_words.
@@ -23,11 +31,11 @@ def split_text_by_sentence_balanced(text: str, max_words: int, min_words: int) -
     sentences = [s.strip() for s in SENT_SPLIT_RE.split(text) if s.strip()]
 
     # 2) gom câu thành chunk không vượt max_words
-    chunks_sent = []              # danh sách chunk, mỗi chunk = list các câu
+    chunks_sent = []
     cur_sent_list, cur_len = [], 0
     for s in sentences:
         sw = count_words(s)
-        # nếu riêng một câu đã > max_words thì cho câu đó thành 1 chunk riêng (nhỡ câu quá dài)
+
         if sw > max_words:
             if cur_sent_list:
                 chunks_sent.append(cur_sent_list)
@@ -45,8 +53,8 @@ def split_text_by_sentence_balanced(text: str, max_words: int, min_words: int) -
     if cur_sent_list:
         chunks_sent.append(cur_sent_list)
 
-    # 3) cân bằng: nếu chunk i có tổng từ < min_words, mượn câu từ cuối chunk i-1
-    def chunk_len(sent_list):  # số từ của 1 chunk (list câu)
+    # 3) cân bằng chunk < min_words
+    def chunk_len(sent_list):
         return sum(count_words(x) for x in sent_list)
 
     i = 1
@@ -56,27 +64,21 @@ def split_text_by_sentence_balanced(text: str, max_words: int, min_words: int) -
             i += 1
             continue
 
-        # thử mượn câu từ cuối chunk trước
         prev = chunks_sent[i-1]
-        cur  = chunks_sent[i]
+        cur = chunks_sent[i]
 
-        # mượn đến khi đủ min_words hoặc chunk trước còn tối thiểu min_words
         while chunk_len(cur) < min_words and len(prev) > 0:
-            # nếu chuyển 1 câu sang mà chunk trước vẫn >= min_words hoặc trước đó có >1 câu
             last_sentence = prev[-1]
             if chunk_len(prev) - count_words(last_sentence) < min_words and len(prev) == 1:
-                break  # không thể mượn thêm (tránh làm chunk trước quá nhỏ)
-            cur.insert(0, prev.pop())  # chuyển câu cuối của prev sang đầu cur
+                break
+            cur.insert(0, prev.pop())
 
-        # nếu vẫn nhỏ hơn min_words thì gộp hẳn vào chunk trước
         if chunk_len(cur) < min_words:
             chunks_sent[i-1] = prev + cur
             del chunks_sent[i]
-            # không tăng i để xét lại chunk mới gộp với chunk phía trước nó
         else:
             i += 1
 
-    # 4) chuyển list câu -> string
     chunks = [" ".join(slist) for slist in chunks_sent if slist]
     return chunks
 
@@ -84,9 +86,8 @@ def split_text_by_sentence_balanced(text: str, max_words: int, min_words: int) -
 # ==========================
 # MAIN
 # ==========================
-input_file  = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_sort_v2_output.txt"
-output_file = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_sort_v1.jsonl"
-
+input_file  = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_train_v2\data_final_sort_v2_output.txt"
+output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_train_v1\data_final_sort_v1_fisrt_se.jsonl"
 
 output = []
 line_id = 0
@@ -96,19 +97,25 @@ with open(input_file, 'r', encoding='utf-8') as f:
         line = raw.strip()
         if not line:
             continue
-        # Bỏ qua header nhóm kiểu "===== Huế ====="
+
+        # bỏ header kiểu "===== Huế ====="
         if line.startswith("=====") and line.endswith("====="):
             continue
 
         title = f"output_paragraph_{line_num}"
+
+        # 🔥 LẤY CÂU ĐẦU TIÊN CỦA DÒNG GỐC (bạn yêu cầu)
+        first_sent = first_sentence(line)
+
         chunks = split_text_by_sentence_balanced(line, MAX_LEN, MIN_LEN)
 
         for chunk in chunks:
             obj = {
                 "title": title,
+                "line_first_sentence": first_sent, # dòng đầu 
                 "passage": chunk,
                 "id": line_id,
-                "len": len(chunk.split())
+                "len": len(chunk.split()),
             }
             output.append(obj)
             line_id += 1
@@ -118,3 +125,4 @@ with open(output_file, 'w', encoding='utf-8') as f:
         f.write(json.dumps(item, ensure_ascii=False) + '\n')
 
 print(f"✅ Đã xử lý xong và xuất {len(output)} đoạn vào {output_file}")
+

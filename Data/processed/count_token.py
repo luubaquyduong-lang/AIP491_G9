@@ -5,7 +5,7 @@ import pandas as pd
 # 1. Cấu hình
 # ==========================
 MODEL_NAME = "hiieu/halong_embedding"  # hoặc "bkai-foundation-models/vietnamese-bi-encoder"
-FILE_PATH = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_sort_v2_output.txt"
+FILE_PATH = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_train_v2\data_final_sort_v2.txt"
 OUTPUT_CSV = r"D:\duongluuba\AIP491_G9\Data\raw\vnexpress\token_count_vnexpress.csv"
 # PREFIX = "passage: "  # E5 cần prefix, BKAI thì có thể bỏ
 MAX_TOKENS = 512
@@ -53,7 +53,7 @@ print(f"🔸 Max tokens: {df['tokens'].max()}")
 print(f"🔸 Min tokens: {df['tokens'].min()}")
 print(f"🔸 Số dòng > {MAX_TOKENS} tokens: {len(too_long)}")
 # 🔹 Đếm số dòng có count < 100
-num_under_100 = (df["count"] < 300).sum()
+num_under_100 = (df["count"] < 50).sum()
 print(f"🔹 Số dòng có count < 100: {num_under_100}")
 
 

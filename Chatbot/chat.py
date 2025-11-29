@@ -93,13 +93,13 @@ def chatbot(conversation_history: List[Dict[str, str]], language = "vi") -> str:
     user_query = conversation_history[-1]['content']
 
     # Tải dữ liệu corpus chứa thông tin du lịch đã được lưu
-    meta_corpus = load_meta_corpus(r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_sorted.jsonl")
+    meta_corpus = load_meta_corpus(r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_train_v1\data_final_sort_v1.jsonl")
 
     # Khởi tạo bộ truy xuất dữ liệu (retriever) dùng BM25 + Bi-encoder
     retriever = Retriever(
         corpus=meta_corpus,
-        corpus_emb_path=r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\\Embedding_data\\embeding_by_model_fine_e5.pkl",
-        model_name="D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\Model_train\intfloat_multilingual_e5_base_fine_tuning"
+        corpus_emb_path=r"d:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\\embedding_data\\embeding_by_model_fine_bkai_v1.pkl",
+        model_name="d:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\model_train\\bkai_foundation_models_fine_tuning"
     )
 
     # Gọi hàm phân loại small talk để kiểm tra loại câu hỏi

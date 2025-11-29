@@ -100,7 +100,7 @@ def split_text_by_sentence_with_overlap(text: str,
 # ==========================
 # MAIN
 # ==========================
-input_file  = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_sort_v2_output.txt"
+input_file  = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_train_v2\data_final_sort_v2_output.txt"
 output_file = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_sort_v2.jsonl"
 
 output = []
