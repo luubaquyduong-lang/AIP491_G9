@@ -29,7 +29,7 @@ print(f"\n📘 Tổng số dòng đọc được: {len(lines)}\n")
 
 for i, line in enumerate(lines):
     words = line.split()           # tách thành danh sách từ
-    text = " ".join(words)   # ghép lại 500 từ đầu
+    text = " ".join(words[:150])   # ghép lại 500 từ đầu
     # text = PREFIX + line
     n_tokens = len(tokenizer(text, add_special_tokens=True)["input_ids"])
     n_count = len(text.split())

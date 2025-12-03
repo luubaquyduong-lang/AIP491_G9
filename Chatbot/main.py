@@ -6,7 +6,7 @@ from typing import List, Optional
 import logging
 from anyio import to_thread
 
-from chat import chatbot
+from chat_new import chatbot
 
 # ===== Logging =====
 logging.basicConfig(level=logging.INFO)

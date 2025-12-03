@@ -5,7 +5,7 @@ import re
 MAX_LEN   = 300  # tối đa số từ mỗi chunk
 MIN_LEN   = 50   # tối thiểu số từ mỗi chunk (nếu < MIN_LEN thì bỏ)
 OVERLAP   = 80  # số từ overlap giữa 2 chunk liên tiếp
-STRIDE    = MAX_LEN - OVERLAP  # số từ "bước trượt" thực tế
+STRIDE    = MAX_LEN - OVERLAP  # số từ "bước trượt" thực tếk
 
 # --- Tách câu (có hỗ trợ …) ---
 SENT_SPLIT_RE = re.compile(r'(?<=[\.\!\?…])\s+')

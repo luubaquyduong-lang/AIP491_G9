@@ -3,7 +3,13 @@ from openai import OpenAI
 from chromadb import PersistentClient
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
+from ollama import chat
 
+from retriever import Retriever
+from smooth_context import smooth_contexts
+from data_loader import load_meta_corpus
+from typing import List, Dict
+from openai import OpenAI
 load_dotenv()
 
 # ------------------------- INIT GLOBAL RESOURCES -------------------------
