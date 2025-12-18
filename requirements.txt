@@ -1,0 +1,44 @@
+# ==========================================
+# BACKEND REQUIREMENTS - AIP491_G9
+# ==========================================
+# Để cài đặt: pip install -r requirements.txt
+# ==========================================
+
+# Core Python Libraries
+python-dotenv
+
+# Web Framework & API
+fastapi==0.115.11
+uvicorn==0.34.0
+pydantic==2.10.6
+anyio
+
+# Data Processing
+pandas==2.2.3
+numpy==1.26.4
+datasets==2.20.0
+
+# NLP & Transformers
+sentence-transformers==5.1.2
+transformers==4.42.4
+tokenizers
+underthesea==6.8.4
+torch==2.5.1
+
+# Vector Database
+chromadb==0.5.0
+
+# OpenAI
+openai==2.6.0
+
+# Web Scraping
+beautifulsoup4==4.12.2
+selenium==4.29.0
+requests==2.32.3
+
+# Utilities
+tqdm
+scikit-learn
+
+# Google Colab (optional - chỉ cần khi chạy trên Colab)
+# google-colab
