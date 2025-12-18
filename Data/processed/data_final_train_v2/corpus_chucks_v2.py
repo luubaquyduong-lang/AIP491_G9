@@ -5,7 +5,6 @@ import re
 MAX_LEN   = 300  # tối đa số từ mỗi chunk
 MIN_LEN   = 50   # tối thiểu số từ mỗi chunk (nếu < MIN_LEN thì bỏ)
 OVERLAP   = 80  # số từ overlap giữa 2 chunk liên tiếp
-STRIDE    = MAX_LEN - OVERLAP  # số từ "bước trượt" thực tếk
 
 # --- Tách câu (có hỗ trợ …) ---
 SENT_SPLIT_RE = re.compile(r'(?<=[\.\!\?…])\s+')
@@ -81,7 +80,7 @@ def split_text_by_sentence_with_overlap(text: str,
             chunks.append(chunk_text)
 
         # 5) Tính vị trí bắt đầu mới theo STRIDE (có overlap)
-        target_next_start = start_word_pos + STRIDE
+        target_next_start = start_word_pos + (max_words - overlap_words)
         new_start = start_idx
 
         # tìm câu đầu tiên sao cho prefix[new_start] >= target_next_start
@@ -96,13 +95,19 @@ def split_text_by_sentence_with_overlap(text: str,
 
     return chunks
 
+def first_sentence(text: str) -> str:
+    """Lấy câu đầu tiên của đoạn gốc."""
+    text = text.strip()
+    if not text:
+        return ""
+    parts = SENT_SPLIT_RE.split(text)
+    return parts[0].strip() if parts else text
 
 # ==========================
 # MAIN
 # ==========================
 input_file  = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_train_v2\data_final_sort_v2_output.txt"
-output_file = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_sort_v2.jsonl"
-
+output_file = r"D:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\AIP491_G9\Data\\processed\data_final_train_v2\data_final_sort_v2_fisrt_se___.jsonl"
 output = []
 line_id = 0
 
@@ -114,8 +119,10 @@ with open(input_file, 'r', encoding='utf-8') as f:
         # Bỏ qua header nhóm kiểu "===== Huế ====="
         if line.startswith("=====") and line.endswith("====="):
             continue
-
         title = f"output_paragraph_{line_num}"
+        #  LẤY CÂU ĐẦU TIÊN CỦA DÒNG GỐC (bạn yêu cầu)
+        first_sent = first_sentence(line)
+        #  CHỈ CHUNKING TRÊN DÒNG HIỆN TẠI (line)
         chunks = split_text_by_sentence_with_overlap(
             line,
             max_words=MAX_LEN,
@@ -126,6 +133,7 @@ with open(input_file, 'r', encoding='utf-8') as f:
         for chunk in chunks:
             obj = {
                 "title": title,
+                "line_first_sentence": first_sent, # dòng đầu 
                 "passage": chunk,
                 "id": line_id,
                 "len": len(chunk.split())
@@ -137,4 +145,4 @@ with open(output_file, 'w', encoding='utf-8') as f:
     for item in output:
         f.write(json.dumps(item, ensure_ascii=False) + '\n')
 
-print(f"✅ Đã xử lý xong và xuất {len(output)} đoạn vào {output_file}")
+print(f" Đã xử lý xong và xuất {len(output)} đoạn vào {output_file}")

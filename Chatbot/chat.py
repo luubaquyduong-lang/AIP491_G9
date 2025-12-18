@@ -1,198 +1,370 @@
-from ollama import chat
 import os
-from retriever import Retriever
-from smooth_context import smooth_contexts
-from data_loader import load_meta_corpus
+import pickle
 from typing import List, Dict
+
+# --- Thư viện bên thứ 3 ---
 from openai import OpenAI
+from chromadb import PersistentClient
+from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
-# Nạp biến môi trường từ file .env (chứa API key, thông tin cấu hình)
+# --- Import Module Nội Bộ ---
+from smoonth_context import smooth_contexts
+from data_loader import load_meta_corpus 
 load_dotenv()
 
-# Lấy API key của OpenAI từ biến môi trường
-api_key = os.getenv("OPENAI_API_KEY")
-# Khởi tạo client để kết nối với API của OpenAI
-client = OpenAI(api_key=api_key)
+# ========================= CẤU HÌNH ĐƯỜNG DẪN =========================
+CORPUS_PATH = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_train_v1\data_final_sort_v1_fisrt_se.jsonl"
+DB_PATH = r"d:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\data_store"
+MODEL_PATH = r"duongluuba/AIP491_G9_Vietnam_tourism_data_bkai-foundation-fine-tuned-v1"
+# ========================d:\ARTIFICIAL_INTELLIGENCE\\KY_9\AIP491\\model_train\bkai_foundation_models_fine_tuning= KHỞI TẠO TÀI NGUYÊN =========================
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Mẫu prompt hướng dẫn cách GPT trả lời câu hỏi dựa trên dữ liệu RAG
-prompt_template = (
-    """###Yêu cầu: Bạn là một trợ lý du lịch thông minh, chuyên cung cấp câu trả lời dựa trên thông tin được truy xuất từ hệ thống về du lịch Việt Nam. Khi nhận được dữ liệu truy xuất từ RAG, hãy:  
+print(">> Loading Embedding Model...")
+EMB_MODEL = SentenceTransformer(MODEL_PATH)
 
-    1. Phân tích dữ liệu để trả lời đúng trọng tâm câu hỏi của người dùng. Chỉ trả lời dựa trên dữ liệu được cung cấp, không suy đoán hoặc tạo ra thông tin mới.
-    2. Tóm tắt thông tin một cách rõ ràng, ngắn gọn nhưng vẫn đầy đủ ý nghĩa.  
-    3. Trả lời với giọng điệu thân thiện và dễ tiếp cận.  
-    4. Nếu dữ liệu truy xuất không có thông tin liên quan đến câu hỏi hoặc không có dữ liệu nào được truy xuất, hãy trả lời: "Xin lỗi, tôi không có thông tin phù hợp để trả lời câu hỏi này."  
-    5. Nếu câu hỏi không liên quan đến chủ đề du lịch Việt Nam (out domain) hãy giới thiệu lịch sự về lĩnh vực của mình.
-    6. Trả lời câu hỏi bằng ngôn ngữ: {language}
+print(">> Connecting to ChromaDB...")
+chroma_client = PersistentClient(path=DB_PATH)
+collection = chroma_client.get_collection(name="aip491_v1")
 
-    ###Dựa vào một số ngữ cảnh truy xuất được dưới đây nếu bạn thấy nó có liên quan đến câu hỏi thì trả lời câu hỏi ở cuối. {input}
-    ###Câu hỏi từ người dùng: {question}
-    ###Nếu thấy ngữ cảnh có liên quan đến câu hỏi hãy trả lời chi tiết và đầy đủ dựa trên ngữ cảnh."""
+print(">> Loading Meta Corpus (cho smooth context)...")
+META_CORPUS = load_meta_corpus(CORPUS_PATH) 
+
+# ========================= PROMPT TEMPLATE =========================
+# PROMPT_TEMPLATE = (
+#     """###Yêu cầu: Bạn là một trợ lý du lịch thông minh, chuyên cung cấp câu trả lời dựa trên thông tin được truy xuất từ hệ thống về du lịch Việt Nam. Khi nhận được dữ liệu truy xuất từ RAG, hãy:  
+#     1. Phân tích dữ liệu để trả lời đúng trọng tâm câu hỏi của người dùng. Chỉ trả lời dựa trên dữ liệu được cung cấp, không suy đoán hoặc tạo ra thông tin mới.
+#     2. Tóm tắt thông tin một cách rõ ràng, ngắn gọn nhưng vẫn đầy đủ ý nghĩa.  
+#     3. Trả lời với giọng điệu thân thiện và dễ tiếp cận.  
+#     4. Nếu dữ liệu truy xuất không có thông tin liên quan đến câu hỏi hoặc không có dữ liệu nào được truy xuất, hãy trả lời: "Xin lỗi, tôi không có thông tin phù hợp để trả lời câu hỏi này."  
+#     5. Nếu câu hỏi không liên quan đến chủ đề du lịch Việt Nam (out domain) hãy giới thiệu lịch sự về lĩnh vực của mình.
+#     6. Trả lời câu hỏi bằng ngôn ngữ: {language}
+
+#     ###Dựa vào một số ngữ cảnh truy xuất được dưới đây nếu bạn thấy nó có liên quan đến câu hỏi thì trả lời câu hỏi ở cuối. {input}
+#     ###Câu hỏi từ người dùng: {question}
+#     ###Nếu thấy ngữ cảnh có liên quan đến câu hỏi hãy trả lời chi tiết và đầy đủ dựa trên ngữ cảnh."""
+# )
+PROMPT_TEMPLATE = (
+    """###Vai trò: Bạn là trợ lý du lịch ảo thông minh, am hiểu sâu sắc về du lịch Việt Nam. Nhiệm vụ của bạn là hỗ trợ du khách dựa trên thông tin được cung cấp.
+
+    ###Nguyên tắc trả lời:
+    1. **Phân tích sâu:** Hãy đọc kỹ các ngữ cảnh được cung cấp (context). Đừng chỉ tìm từ khóa chính xác, hãy tìm các ý liên quan, đồng nghĩa hoặc suy luận logic từ ngữ cảnh để trả lời câu hỏi.
+    2. **Trả lời linh hoạt:** - Nếu ngữ cảnh chứa đầy đủ thông tin: Trả lời chi tiết, chính xác.
+       - Nếu ngữ cảnh chỉ chứa một phần thông tin: Hãy trả lời dựa trên những gì có trong ngữ cảnh và nói rõ rằng hệ thống chưa có thông tin chi tiết cho phần còn lại. Đừng từ chối toàn bộ câu hỏi.
+    3. **Phong cách:** Thân thiện, nhiệt tình như một hướng dẫn viên du lịch bản địa.
+    4. **Xử lý thiếu tin:** Chỉ khi ngữ cảnh HOÀN TOÀN KHÔNG LIÊN QUAN đến câu hỏi, bạn mới được phép trả lời: "Hiện tại cơ sở dữ liệu của tôi chưa cập nhật thông tin chính xác về vấn đề này, bạn có thể thử hỏi về các địa điểm khác như [gợi ý dựa trên ngữ cảnh] không?".
+    5. **Ngôn ngữ:** Trả lời bằng ngôn ngữ: {language}
+
+    ###Dữ liệu được truy xuất:
+    {input}
+
+    ###Câu hỏi của người dùng: {question}
+    
+    ###Câu trả lời của bạn:"""
 )
+# ========================= CÁC HÀM XỬ LÝ (UTILS) =========================
 
-# Hàm tạo prompt hoàn chỉnh cho mô hình GPT dựa trên ngữ cảnh và câu hỏi người dùng
+def classify_small_talk(user_input, language="vi"):
+    """
+    Phân loại Small Talk dùng Prompt chi tiết
+    """
+    prompt = f"""
+    ###Yêu cầu: Bạn là một trợ lý hữu ích được thiết kế để phân loại các câu hỏi của người dùng trong ngữ cảnh của một chatbot du lịch Việt Nam. Nhiệm vụ của bạn là xác định liệu câu hỏi của người dùng có phải là "small talk" hay không"
+    ###"Small talk" đề cập đến những chủ đề trò chuyện thông thường, không liên quan trực tiếp đến du lịch Việt Nam, chẳng hạn như chào hỏi, câu hỏi cá nhân, câu chuyện cười.
+    
+    Quy tắc:
+    1. Nếu câu hỏi KHÔNG phải là small talk (liên quan đến du lịch, ẩm thực, địa điểm...) -> Trả về đúng chữ: "no".
+    2. Nếu câu hỏi là small talk -> Không trả lời câu hỏi mà hãy giới thiệu về chatbot tư vấn du lịch Việt Nam một cách ngắn gọn, cuốn hút bằng ngôn ngữ: {language}.
+
+    ###Ví dụ:
+    User query: "Chào bạn, hôm nay thế nào?"
+    Response: "Cảm ơn bạn đã quan tâm! Mình là chatbot tư vấn du lịch Việt Nam, sẵn sàng hỗ trợ bạn khám phá các điểm đến tuyệt đẹp. Hãy hỏi mình bất cứ điều gì liên quan đến du lịch nhé!"
+    
+    User query: "Ở đó có món gì ngon?"
+    Response: "no"
+    
+    User query: "Hà Nội có món ăn nào ngon nhất?"
+    Response: "no"
+    
+    User query: "Cảm ơn bạn"
+    Response: "Cảm ơn bạn đã ghé thăm! Mình là chatbot tư vấn du lịch Việt Nam, luôn sẵn sàng giúp bạn khám phá các điểm đến tuyệt vời, ẩm thực phong phú và nhiều hoạt động thú vị. Hãy hỏi mình bất cứ điều gì liên quan đến du lịch nhé!"
+
+    ###Dựa trên câu hỏi từ người dùng, hãy thực hiện đúng yêu cầu. 
+    Câu hỏi từ người dùng: {user_input}
+    """
+
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        answer = completion.choices[0].message.content.strip()
+        # Logic check để đảm bảo trả về "no" đúng định dạng
+        if "no" in answer.lower() and len(answer) < 10:
+            return "no"
+        return answer
+    except Exception:
+        return "no"
+
+def rewrite_question(history):
+    """
+    Viết lại câu hỏi dựa trên lịch sử hội thoại (Chỉ nhận 1 tham số history).
+    Logic: Lấy câu cuối cùng làm câu hỏi hiện tại, các câu trước đó làm ngữ cảnh.
+    """
+    # 1. Kiểm tra an toàn
+    if not history:
+        return ""
+    
+    # 2. Tách câu hỏi hiện tại và lịch sử
+    current_question = history[-1]['content'] # Câu cuối cùng là câu hỏi mới
+    
+    # Lấy 6 câu trước đó làm ngữ cảnh (loại trừ câu cuối)
+    prev_turns = history[:-1][-6:] 
+    
+    # Nếu không có lịch sử trước đó thì không cần viết lại (trả về câu gốc)
+    if not prev_turns:
+        return current_question
+
+    text_history = "\n".join([f"{m['role']}: {m['content']}" for m in prev_turns])
+    # print("text_history ", text_history)
+    # 3. Prompt Tối ưu (Few-Shot)
+    prompt = f"""
+    ### Vai trò:
+    Bạn là chuyên gia "Query Rewriting". Nhiệm vụ là viết lại [Câu hỏi hiện tại] dựa trên [Lịch sử hội thoại] để tạo thành câu hỏi độc lập (Standalone Question).
+
+    ### Quy tắc BẮT BUỘC:
+    1. Thay thế đại từ (nó, đó, ở đây...) bằng danh từ cụ thể trong lịch sử.
+    2. Bổ sung chủ ngữ/vị ngữ nếu câu hỏi bị cụt lủn dựa trên ngữ cảnh trước đó.
+    3. Nếu câu hỏi đã rõ ràng hoặc ĐỔI CHỦ ĐỀ MỚI -> Giữ nguyên câu hỏi gốc.
+    4. KHÔNG trả lời câu hỏi, chỉ viết lại.
+    5. Giữ nguyên ngôn ngữ Tiếng Việt.
+
+    ### Ví dụ mẫu (Học theo cách xử lý này):
+    
+    Lịch sử: 
+    user: Vịnh Hạ Long ở đâu?
+    assistant: Ở Quảng Ninh.
+    Câu hiện tại: Vé ở đó bao nhiêu?
+    -> Output: Vé tham quan Vịnh Hạ Long bao nhiêu tiền?
+
+    Lịch sử:
+    user: Món ngon Hà Nội?
+    assistant: Phở, bún chả.
+    Câu hiện tại: Sài Gòn có gì vui?
+    -> Output: Sài Gòn có gì vui? (Giữ nguyên vì đổi chủ đề)
+
+    ### Input thực tế:
+    [Lịch sử hội thoại]:
+    {text_history}
+
+    [Câu hỏi hiện tại]:
+    {current_question}
+
+    ### Output (Chỉ trả về câu hỏi đã viết lại):
+    """
+
+    try:
+        res = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3, # Giảm nhiệt độ để model tập trung vào tính chính xác
+        )
+        return res.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Lỗi rewrite: {e}")
+        return current_question # Fallback về câu gốc nếu lỗi
+
+def chroma_retrieve_formatted(query, topk = 10):
+    """
+    Lấy dữ liệu từ Chroma và format chuẩn cho smooth_contexts
+    """
+    q_emb = EMB_MODEL.encode([query]).tolist()
+    
+    result = collection.query(
+        query_embeddings=q_emb,
+        n_results=topk,
+        include=["documents", "metadatas", "distances"]
+    )
+    
+    formatted_contexts = []
+    if result["documents"]:
+        for i in range(len(result["documents"][0])):
+            meta = result["metadatas"][0][i]
+            dist = result["distances"][0][i]  # Cosine Distance
+            
+            # công thức chuyển nó thành Cosine Similarity
+            score = 1 - dist
+
+            formatted_contexts.append({
+                "doc_id": int(meta["doc_id"]),     
+                "title": meta.get("title", ""),
+                "passage": result["documents"][0][i],
+                "score": score,             
+            })
+    # print(formatted_contexts)        
+    return formatted_contexts
+
 def get_prompt(question, contexts, language):
-    # Ghép các ngữ cảnh (context) thành chuỗi hiển thị đẹp
-    context = "\n\n".join([f"Context [{i+1}]: {x['passage']}" for i, x in enumerate(contexts)])
-    input = f"\n\n{context}\n\n"
+    """
+    Tạo prompt cuối cùng gửi cho LLM dựa trên Template
+    """
+    if not contexts:
+        input_str = "Không tìm thấy dữ liệu liên quan."
+    else:
+        # Ghép các ngữ cảnh
+        context_list = [f"Context [{i+1}]: {c['passage']}" for i, c in enumerate(contexts)]
+        input_str = "\n\n".join(context_list)
+        input_str = f"\n\n{input_str}\n\n"
+
     # Chèn dữ liệu vào mẫu prompt
-    prompt = prompt_template.format(
-        input=input,
+    prompt = PROMPT_TEMPLATE.format(
+        input=input_str,
         question=question, 
         language=language
     )
     return prompt
 
-# Hàm phân loại xem câu hỏi có phải là small talk (trò chuyện phiếm) hay không
-def classify_small_talk(input_sentence, language):
-    prompt = f"""
-    ###Yêu cầu: Bạn là một trợ lý hữu ích được thiết kế để phân loại các câu hỏi của người dùng trong ngữ cảnh của một chatbot du lịch Việt Nam. Nhiệm vụ của bạn là xác định liệu câu hỏi của người dùng có phải là "small talk" hay không"
-    ###"Small talk" đề cập đến những chủ đề trò chuyện thông thường, không liên quan trực tiếp đến du lịch Việt Nam, chẳng hạn như chào hỏi, câu hỏi cá nhân, câu chuyện cười.
-    Nếu câu hỏi không phải là small talk và liên quan đến du lịch, ẩm thực, điểm đến, hoạt động, bạn PHẢI có từ "no" trong câu trả lời và trả về "no."
-    Nếu câu hỏi là small talk: Không trả lời câu hỏi mà hãy giới thiệu về chatbot tư vấn du lịch Việt Nam một cách ngắn gọn với giọng điệu cuốn hút bằng ngôn ngữ: {language}.
-    ###Ví dụ:
-    User query: "Chào bạn, hôm nay thế nào?"
-    Response: "Cảm ơn bạn đã quan tâm! Mình là chatbot tư vấn du lịch Việt Nam, sẵn sàng hỗ trợ bạn khám phá các điểm đến tuyệt đẹp, món ăn hấp dẫn và nhiều hoạt động thú vị. Hãy hỏi mình bất cứ điều gì liên quan đến du lịch nhé! 😊"
-    User query: "Ở đó có món gì ngon?"
-    Response: "no"
-    User query: "Bạn có thích đi du lịch không?"
-    Response: "Mình là chatbot tư vấn du lịch Việt Nam, luôn sẵn sàng hỗ trợ bạn khám phá các điểm đến tuyệt vời, ẩm thực hấp dẫn và các hoạt động thú vị. Hãy hỏi tôi bất kỳ điều gì liên quan đến du lịch nhé! 😊"
-    User query: "Hà Nội có món ăn nào ngon nhất?"
-    Response: "no"
-    User query: "Các địa điểm du lịch nổi tiếng ở Huế là gì?"
-    Response: "no"
-    User query: "Cảm ơn bạn"
-    Response: "Cảm ơn bạn đã ghé thăm! Mình là chatbot tư vấn du lịch Việt Nam, luôn sẵn sàng giúp bạn khám phá các điểm đến tuyệt vời, ẩm thực phong phú và nhiều hoạt động thú vị. Hãy hỏi mình bất cứ điều gì liên quan đến du lịch nhé!"
-    ###Dựa trên câu hỏi từ người dùng, hãy thực hiện đúng yêu cầu. Câu hỏi từ người dùng: {input_sentence}"""
+# def chatbot(history, language="vi"):
+#     """
+#     RAG pipeline:
+#     - original_q: câu gốc người dùng (để kiểm small-talk)
+#     - new_q: câu đã rewrite dùng cho retrieval
+#     """
+#     # Quy ước: nếu caller truyền original_q thì dùng nó cho small-talk,
+#     # nếu không thì fallback vào history[-1]["content"].
+#     # Lấy câu hỏi cuối cùng mà người dùng nhập vào
+#     original_q = history[-1]['content']
+#     # print(f"User query : {original_q}")
+#     # 1. Check Small Talk (dùng original query)
+#     st = classify_small_talk(original_q, language)
+#     if st != "no":
+#         return st
+#     # Nếu không phải small talk -> xử lý theo pipeline RAG
+#     elif st == 'no':
+#         # 2. Use provided rewritten query for retrieval/generation
+#         try:
+#             new_q = rewrite_question(history)
+#             # thay thế câu hỏi hỏi original query trong history bằng new qurery
+#             history[-1]['content'] = new_q
+#         except Exception as e:
+#             print(f"Warning: rewrite_question failed: {e}")
+#             new_q = original_q
+#         print(f"Rewritten Query: {new_q}")
 
-    # Gọi API GPT để phân loại câu hỏi
-    completion = client.chat.completions.create(
-      model="gpt-4o-mini",
-      messages=[
-        {"role": "user", "content": prompt}
-      ]
-    )
+#         # 3. Retrieve
+#         raw_contexts = chroma_retrieve_formatted(new_q, topk=10)
+#         # print("Retrieve: ", raw_contexts)
+#         # 4. Smooth Contexts
+#         if raw_contexts:
+#             final_contexts = smooth_contexts(raw_contexts, META_CORPUS)
+#             # print(f"Contexts: {len(raw_contexts)} raw -> {len(final_contexts)} smoothed")
+#             # print('Smooth Contexts: ', final_contexts)
+#         else:
+#             final_contexts = []
 
-    # Lấy kết quả phân loại
-    answer = completion.choices[0].message.content
-    return answer.strip().lower()
+#         # 5. Build Prompt
+#         prompt = get_prompt(new_q, final_contexts, language)
+#         # print(f"prompt: {prompt}")
 
-# Hàm tạo prompt mới dựa trên lịch sử hội thoại
-def create_new_prompt(prompt, chat_history, user_query, **kwargs):
-    # Gộp prompt ban đầu với lịch sử hội thoại và câu hỏi hiện tại
-    new_prompt = f"{prompt} lịch sử cuộc trò chuyện: {chat_history} câu hỏi của người dùng: {user_query}"
-    # Thêm các tham số phụ khác (nếu có)
-    for key, value in kwargs.items():
-        new_prompt += f" {key}: {value}"
-    return new_prompt
+#         # 6. Generate Answer
+#         res = client.chat.completions.create(
+#             model="gpt-4o-mini",
+#             messages=[{"role": "user", "content": prompt}]
+#         )
 
-# Hàm chính điều phối toàn bộ quá trình chatbot
-def chatbot(conversation_history: List[Dict[str, str]], language = "vi") -> str:
-    # Lấy câu hỏi cuối cùng mà người dùng nhập vào
-    user_query = conversation_history[-1]['content']
-
-    # Tải dữ liệu corpus chứa thông tin du lịch đã được lưu
-    meta_corpus = load_meta_corpus(r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\processed\data_final_train_v1\data_final_sort_v1.jsonl")
-
-    # Khởi tạo bộ truy xuất dữ liệu (retriever) dùng BM25 + Bi-encoder
-    retriever = Retriever(
-        corpus=meta_corpus,
-        corpus_emb_path=r"d:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\\embedding_data\\embeding_by_model_fine_bkai_v1.pkl",
-        model_name="d:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\model_train\\bkai_foundation_models_fine_tuning"
-    )
-
-    # Gọi hàm phân loại small talk để kiểm tra loại câu hỏi
-    result = classify_small_talk(user_query, language)
-    print("result classify small talk:", result)
-
-    # Nếu là small talk -> trả về lời giới thiệu ngắn gọn
-    if "no" not in result:
-        return result
-
-    # Nếu không phải small talk -> xử lý theo pipeline RAG
-    elif "no" in result:
-        # Prompt yêu cầu GPT chuyển câu hỏi thành dạng độc lập (nếu có tham chiếu)
-        prompt = """Dựa trên lịch sử cuộc trò chuyện và câu hỏi mới nhất của người dùng, có thể tham chiếu đến ngữ cảnh trong lịch sử trò chuyện, 
-            hãy tạo thành một câu hỏi độc lập có thể hiểu được mà không cần lịch sử cuộc trò chuyện. 
-            KHÔNG trả lời câu hỏi, chỉ cần điều chỉnh lại nếu cần, nếu không thì giữ nguyên. 
-            Nếu câu hỏi bằng tiếng Anh, sau khi tinh chỉnh, hãy dịch câu hỏi đó sang tiếng Việt."""
-
-        # Tạo prompt mới kết hợp với lịch sử hội thoại
-        new_prompt = create_new_prompt(
-            prompt=prompt,
-            chat_history=conversation_history,
-            user_query=user_query,
-        )
-
-        # Gọi GPT để tinh chỉnh lại câu hỏi người dùng
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "user", "content": new_prompt}
-            ]
-        )
-
-        # Lấy câu hỏi đã tinh chỉnh
-        answer = completion.choices[0].message.content
-        print("Câu hỏi mới: ", answer)
-        question = answer
-
-        # Truy xuất top 10 đoạn văn bản có liên quan nhất từ corpus
-        top_passages = retriever.retrieve(question, topk=10)
-        print("topK:", top_passages)
-
-        # Làm mượt ngữ cảnh (gộp hoặc lọc bớt phần trùng lặp)
-        smoothed_contexts = smooth_contexts(top_passages, meta_corpus)
-        print("Smooth context: ", smoothed_contexts)
-
-        # Tạo prompt hoàn chỉnh cho GPT với ngữ cảnh và câu hỏi
-        prompt = get_prompt(question, smoothed_contexts, language)
+#         answer = res.choices[0].message.content.strip()
+#         return answer
+#     # Trường hợp lỗi không mong muốn
+#     else:
+#         print("Unexpected response from the model.")
+#         return "Xin lỗi, hệ thống không xử lý được."
     
-        # Gọi GPT để sinh câu trả lời cuối cùng dựa trên ngữ cảnh
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+#     # Kết thúc hàm chatbot
 
-        # Lấy câu trả lời cuối cùng
-        answer = completion.choices[0].message.content
-        return answer
+def chatbot(history, language="vi"):
+    """
+    RAG pipeline
+    """
+    # 1. Lấy câu gốc để check small talk và làm ngữ cảnh
+    # Copy để đảm bảo không sửa nhầm, dù list slicing trả về copy nhưng cẩn thận vẫn hơn
+    original_q = history[-1]['content'] 
+    
+    # 2. Check Small Talk (Dùng câu GỐC)
+    st = classify_small_talk(original_q, language)
+    if st != "no":
+        return st # Trả về luôn nếu là small talk
 
-    # Trường hợp lỗi không mong muốn
+    # 3. Query Rewriting
+    try:
+        # Hàm này dùng history để hiểu ngữ cảnh, trả về câu hỏi rõ nghĩa
+        rewritten_q = rewrite_question(history) 
+        print(f"Rewritten Query: {rewritten_q}")
+    except Exception as e:
+        print(f"Warning: rewrite_question failed: {e}")
+        rewritten_q = original_q # Fallback về câu gốc nếu lỗi
+    
+    # --- ĐOẠN SỬA QUAN TRỌNG ---
+    # KHÔNG ĐƯỢC LÀM: history[-1]['content'] = rewritten_q
+    # Hãy dùng biến rewritten_q cho các bước tiếp theo
+    
+    # 4. Retrieve (Dùng câu ĐÃ VIẾT LẠI)
+    raw_contexts = chroma_retrieve_formatted(rewritten_q, topk=10)
+    
+    # 5. Smooth Contexts
+    if raw_contexts:
+        final_contexts = smooth_contexts(raw_contexts, META_CORPUS)
     else:
-        print("Unexpected response from the model.")
-        return "Xin lỗi, hệ thống không xử lý được."
+        final_contexts = []
+
+    # 6. Build Prompt (Dùng câu ĐÃ VIẾT LẠI để hỏi model trả lời)
+    # Model sẽ trả lời tốt hơn nếu nhận được câu hỏi rõ nghĩa (rewritten_q) 
+    # thay vì câu cụt lủn (original_q)
+    prompt = get_prompt(rewritten_q, final_contexts, language)
     
-    # Kết thúc hàm chatbot
-#   
+    # 7. Generate Answer
+    try:
+        res = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        answer = res.choices[0].message.content.strip()
+        return answer
+    except Exception as e:
+        print(f"Generation error: {e}")
+        return "Xin lỗi, đã xảy ra lỗi khi tạo câu trả lời."
+# ========================= VÒNG LẶP CHÍNH =========================
 def main():
-    print(" Chatbot du lịch Việt Nam sẵn sàng! (gõ 'exit' để thoát)\n")
-    # Tạo lịch sử hội thoại ban đầu
-    conversation_history = []
-    language = "vi"
+    print("\n" + "="*50)
+    print("Chatbot Du lịch Việt Nam (RAG Complete Version)")
+    print("="*50 + "\n")
+
+    history = []
+    current_lang = "vi" 
 
     while True:
-        user_query = input(" Bạn: ").strip()
-        if user_query.lower() in ["exit", "quit", "bye", "thoát","e"]:
-            print(" Tạm biệt! Chúc bạn có chuyến đi vui vẻ!")
-            break
-
-        # Thêm câu hỏi vào lịch sử
-        conversation_history.append({"role": "user", "content": user_query})
-
-        # Gọi chatbot xử lý
         try:
-            result = chatbot(conversation_history, language)
-            print(f" Chatbot: {result}\n")
-            # Lưu phản hồi vào lịch sử hội thoại
-            conversation_history.append({"role": "assistant", "content": result})
-        except Exception as e:
-            print(" Lỗi khi xử lý:", e)
+            query = input("Bạn: ").strip()
+            if not query:
+                continue
+            if query.lower() in ["exit", "quit", "bye", "e", "thoát"]:
+                print("Tạm biệt! Hẹn gặp lại.")
+                break
+            #  Append original question to history (keep original)
+            history.append({"role": "user", "content": query})
+
+            #  Call chatbot with both original and rewritten queries
+            reply = chatbot(history, language=current_lang)
+
+            print(f"Bot: {reply}\n")
+            history.append({"role": "assistant", "content": reply})
+            # print(history)
+        except KeyboardInterrupt:
+            print("\nĐã dừng chương trình.")
             break
-
-
+        except Exception as e:
+            print(f"Lỗi hệ thống: {e}")
 if __name__ == "__main__":
     main()
+    
+    
+    

@@ -210,10 +210,10 @@ def crawl_and_save(url, output_path):
         with open(output_path, 'a', encoding='utf-8') as f:
             f.write(output_text + "\n")
 
-        print(f"💾 Đã lưu vào: {output_path}")
+        print(f" Đã lưu vào: {output_path}")
 
     except Exception as e:
-        print(f"❌ Lỗi khi crawl {url}: {e}")
+        print(f" Lỗi khi crawl {url}: {e}")
         traceback.print_exc()
 
 
@@ -227,7 +227,7 @@ def crawl_and_save(url, output_path):
 #     # Xóa file cũ nếu có
 #     if os.path.exists(output_file):
 #         os.remove(output_file)
-#         print(f"🧹 Đã xóa file cũ: {output_file}")
+#         print(f" Đã xóa file cũ: {output_file}")
 
 #     try:
 #         # Đọc danh sách link
@@ -235,19 +235,19 @@ def crawl_and_save(url, output_path):
 #             urls = [line.strip() for line in f if line.strip() and line.startswith('http')]
 
 #         if not urls:
-#             print(f"⚠️ Không tìm thấy link nào trong file: {input_file}")
+#             print(f" Không tìm thấy link nào trong file: {input_file}")
 
 #         # Chạy crawl từng link
 #         for i, url in enumerate(urls, start=1):
-#             print(f"\n▶️ [{i}/{len(urls)}] Crawl: {url}")
+#             print(f"\n▶ [{i}/{len(urls)}] Crawl: {url}")
 #             crawl_and_save(url, output_file)
 
-#         print("\n✅ Hoàn thành tất cả!")
+#         print("\n Hoàn thành tất cả!")
 
 #     except FileNotFoundError:
-#         print(f"❌ Lỗi: Không tìm thấy file input: {input_file}")
+#         print(f" Lỗi: Không tìm thấy file input: {input_file}")
 #     except Exception as e:
-#         print(f"❌ Lỗi không xác định: {e}")
+#         print(f" Lỗi không xác định: {e}")
 url = 'https://vnexpress.net/48-gio-o-y-ty-4807822.html'
 output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vnexpress\data_text\test.txt"
 crawl_and_save(url, output_file)

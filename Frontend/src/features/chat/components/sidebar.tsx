@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderIcon, PlusCircleIcon, ArrowLeftIcon, InboxIcon, ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/solid";
+import { FolderIcon, PlusCircleIcon, ArrowLeftIcon, ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/solid";
 import { useChat } from "../hooks/use-chat";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -34,24 +34,19 @@ export const Sidebar = () => {
     <>
       {sidebarOpen && (
         <aside
-          className={`relative flex-shrink-0 max-w-xs border-r 
-                      ${theme === "light"
-              ? "bg-gray-200 text-black"
-              : "bg-gray-800"} 
-                        p-4 pt-10 overflow-visible`}
+          className={`relative flex-shrink-0 max-w-xs border-r p-4 pt-10 overflow-visible ${theme === "light"
+              ? "border-orange-200 bg-gradient-to-b from-orange-50 to-white text-gray-800"
+              : "border-slate-700 bg-gradient-to-b from-slate-900 to-slate-950 text-gray-100"
+            }`}
           style={{
             lineHeight: "30px",
-            fontSize: "17,5px",
+            fontSize: "17.5px",
             tabSize: "4",
             width: "600px",
             overflow: "hidden",
             overflowY: "auto",
-            /* CSS tùy chỉnh cho thanh cuộn */
-            scrollbarColor:
-              theme === "light"
-                ? "#000000 #f0f0f0"
-                : "#ffffff #000000" /* Thumb màu đen, Track màu sáng */,
-            scrollbarWidth: "thin" /* Chỉnh kích thước thanh cuộn */,
+            scrollbarColor: theme === "light" ? "#ea580c #fef3f2" : "#1e293b #0f172a",
+            scrollbarWidth: "thin",
           }}
         >
           {/* Container cho các nút */}
@@ -60,17 +55,17 @@ export const Sidebar = () => {
             <div className="relative group overflow-visible">
               <Button
                 onClick={startNewChat}
-                className={`p-2 rounded-full transition-colors duration-200
-                            ${theme === "light"
-                    ? "hover:bg-blue-600 text-black"
-                    : "hover:bg-blue-400 text-white"}`}>
+                className={`p-2 rounded-full border transition-all duration-200 shadow-sm ${theme === "light"
+                    ? "bg-white hover:bg-orange-500 hover:text-white text-orange-600 border-orange-200"
+                    : "bg-slate-800 hover:bg-slate-600 text-cyan-400 border-slate-600"
+                  }`}
+              >
                 <PlusCircleIcon className="w-8 h-8" />
               </Button>
 
               {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max 
-                              p-1 text-sm text-white bg-black rounded opacity-0 
-                              group-hover:opacity-100 transition-opacity duration-200 overflow-visible">
+              <div className={`absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1 text-sm text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 overflow-visible shadow-md ${theme === "light" ? "bg-orange-600" : "bg-slate-700"
+                }`}>
                 {language === "Tiếng Việt" ? "Cuộc trò chuyện mới" : "New Chat"}
               </div>
             </div>
@@ -79,18 +74,17 @@ export const Sidebar = () => {
             <div className="relative group">
               <Button
                 onClick={toggleSidebar}
-                className={`p-2 rounded-full transition-colors duration-200 overflow-visible
-                            ${theme === "light"
-                    ? "hover:bg-blue-600 text-black"
-                    : "hover:bg-blue-400 text-white"}`}>
+                className={`p-2 rounded-full border transition-all duration-200 shadow-sm overflow-visible ${theme === "light"
+                    ? "bg-white hover:bg-orange-500 hover:text-white text-orange-600 border-orange-200"
+                    : "bg-slate-800 hover:bg-slate-600 text-cyan-400 border-slate-600"
+                  }`}
+              >
                 <ArrowLeftIcon className="w-7 h-7" />
               </Button>
 
               {/* Tooltip */}
-              <div className="absolute top-full right-1/2 translate-x-1/2 
-                              translate-y-2 w-max p-1 text-sm text-white bg-black 
-                              rounded opacity-0 group-hover:opacity-100 transition-opacity 
-                              duration-200 shadow-lg z-20 overflow-visible">
+              <div className={`absolute top-full right-1/2 translate-x-1/2 translate-y-2 w-max px-3 py-1 text-sm text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-md z-20 overflow-visible ${theme === "light" ? "bg-orange-600" : "bg-slate-700"
+                }`}>
                 {language === "Tiếng Việt" ? "Đóng thanh bên" : "Close Sidebar"}
               </div>
             </div>
@@ -100,11 +94,12 @@ export const Sidebar = () => {
           <Link href="/">
             <Button
               onClick={startNewChat}
-              className={`group w-full max-w-sm px-4 py-2 mb-4 mt-14 rounded-full flex items-center justify-between gap-2 transition-colors duration-200
-                ${theme === "light" ? "text-black bg-gray-300 hover:bg-blue-600" : "text-black bg-blue-400 hover:bg-blue-500"} 
-                text-lg font-bold`}
+              className={`group w-full max-w-sm px-5 py-3 mb-4 mt-14 rounded-full flex items-center justify-between gap-2 text-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 ${theme === "light"
+                  ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                  : "bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-cyan-400 border border-slate-600"
+                }`}
             >
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-3">
                 <ChatBubbleBottomCenterTextIcon className="w-7 h-7" />
                 {language === "Tiếng Việt" ? "Trò chuyện ngay!" : "Chat now!"}
               </div>
@@ -113,44 +108,43 @@ export const Sidebar = () => {
             </Button>
           </Link>
           {/* chat history */}
-          <h1 className="max-w-sm mb-4 mt-7 text-lg font-bold flex items-center gap-2">
+          <h1 className={`max-w-sm mb-4 mt-7 text-lg font-semibold flex items-center gap-2 ${theme === "light" ? "text-orange-700" : "text-cyan-400"
+            }`}>
             <FolderIcon className="w-5 h-5" />
             {language === "Tiếng Việt" ? "Lịch sử trò chuyện" : "Chat history"}
           </h1>
 
 
           {history.length === 0 ? (
-            <p className="text-center text-muted-foreground">
+            <p className={`text-center font-light ${theme === "light" ? "text-orange-400" : "text-slate-500"
+              }`}>
               Không tồn tại lịch sử trò chuyện
             </p>
           ) : (
             <ul>
-              {history.map((chat) => (
-                <Link href={`/chat/${chat.id}`}>
+              {history.slice().reverse().map((chat) => (
+                <Link href={`/chat/${chat.id}`} key={chat.id}>
                   <li
-                    key={chat.id}
-                    className={`p-2 rounded-2xl cursor-pointer transition-colors duration-200
-                                    ${selectedChat === chat.id
+                    className={`p-3 mb-2 rounded-2xl cursor-pointer transition-all duration-200 border-l-4 ${selectedChat === chat.id
                         ? theme === "light"
-                          ? "bg-gray-300"
-                          : "bg-gray-700"
+                          ? "bg-orange-100 border-orange-500 shadow-sm"
+                          : "bg-slate-800 border-cyan-500 shadow-sm"
                         : theme === "light"
-                          ? "hover:bg-blue-600"
-                          : "hover:bg-blue-400"
+                          ? "bg-white hover:bg-orange-50 border-transparent hover:border-orange-300"
+                          : "bg-slate-900 hover:bg-slate-800 border-transparent hover:border-cyan-600"
                       }`}
                     style={{
                       display: "block",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
-                      textOverflow: "clip", // Không dùng dấu "..."
+                      textOverflow: "clip",
                       maxWidth: "590px",
-                      maskImage:
-                        "linear-gradient(to right, black 80%, transparent)", // Tạo hiệu ứng mờ dần
-                      WebkitMaskImage:
-                        "linear-gradient(to right, black 80%, transparent)", // Tương thích Webkit
+                      maskImage: "linear-gradient(to right, black 80%, transparent)",
+                      WebkitMaskImage: "linear-gradient(to right, black 80%, transparent)",
                     }}
                   >
-                    {chat.title}
+                    <span className={`font-normal ${theme === "light" ? "text-gray-700" : "text-gray-300"
+                      }`}>{chat.title}</span>
                   </li>
                 </Link>
               ))}

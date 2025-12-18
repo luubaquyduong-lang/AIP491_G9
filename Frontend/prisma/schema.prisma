@@ -13,6 +13,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Ghi chú (tiếng Việt):
+// - Prisma được cấu hình sử dụng MongoDB làm datasource ở trên.
+// - Trường `id` của `Chat` và `Message` được ánh xạ tới `_id` (ObjectId)
+//   thông qua `@map("_id") @db.ObjectId`, vì vậy document MongoDB
+//   sẽ dùng ObjectId thực tế.
+// - `Message.chatId` lưu giá trị ObjectId (dạng chuỗi) tham chiếu tới `Chat`.
+
 model Chat {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   userId String

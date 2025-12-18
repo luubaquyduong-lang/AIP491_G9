@@ -104,7 +104,7 @@ with open(input_file, 'r', encoding='utf-8') as f:
 
         title = f"output_paragraph_{line_num}"
 
-        # 🔥 LẤY CÂU ĐẦU TIÊN CỦA DÒNG GỐC (bạn yêu cầu)
+        #  LẤY CÂU ĐẦU TIÊN CỦA DÒNG GỐC (bạn yêu cầu)
         first_sent = first_sentence(line)
 
         chunks = split_text_by_sentence_balanced(line, MAX_LEN, MIN_LEN)
@@ -124,5 +124,5 @@ with open(output_file, 'w', encoding='utf-8') as f:
     for item in output:
         f.write(json.dumps(item, ensure_ascii=False) + '\n')
 
-print(f"✅ Đã xử lý xong và xuất {len(output)} đoạn vào {output_file}")
+print(f" Đã xử lý xong và xuất {len(output)} đoạn vào {output_file}")
 

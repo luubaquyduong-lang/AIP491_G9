@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ============================
-    // ✍️ Lưu tin nhắn của user vào DB
+    //  Lưu tin nhắn của user vào DB
     // ============================
     const userMessage = await prisma.message.create({
       data: {
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     console.log(language);
 
     // ============================
-    // 🤖 Gửi request sang Python FastAPI backend
+    //  Gửi request sang Python FastAPI backend
     // ============================
     const response = await fetch("http://127.0.0.1:8000/process", {
       method: "POST",
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     const { answer } = await response.json();
 
     // ============================
-    // 🤖 Lưu lại response của chatbot vào DB
+    //  Lưu lại response của chatbot vào DB
     // ============================
     const botMessage = await prisma.message.create({
       data: {

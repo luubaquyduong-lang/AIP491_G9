@@ -580,15 +580,15 @@ import pickle
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.evaluation import InformationRetrievalEvaluator
 
-# ===== 1️⃣ Load test data (.pkl) =====
-pkl_path = r"D:\duongluuba\AIP491_G9\Data\data_train\splits\test_pairs.pkl"
+# ===== 1 Load test data (.pkl) =====
+pkl_path = r"c:\Users\Acer\Downloads\test_1597.pkl"
 
 with open(pkl_path, "rb") as f:
     test_pairs = pickle.load(f)
 
-print("✅ Số mẫu test:", len(test_pairs))
+print(" Số mẫu test:", len(test_pairs))
 
-# ===== 2️⃣ Tạo queries / corpus / qrels =====
+# ===== 2 Tạo queries / corpus / qrels =====
 def ensure_prefix(s: str, kind: str) -> str:
     import re
     s = re.sub(fr"^{kind}:\s*{kind}:\s*", f"{kind}: ", s, flags=re.I)
@@ -611,22 +611,22 @@ queries, corpus, qrels = build_ir_inputs(test_pairs)
 
 print(f"Queries: {len(queries)} | Corpus: {len(corpus)} | Qrels: {len(qrels)}")
 
-# ===== 3️⃣ Load models =====
+# ===== 3 Load models =====
 BASE_MODEL = "bkai-foundation-models/vietnamese-bi-encoder"
 # bkai-foundation-models/vietnamese-bi-encoder
 # intfloat/multilingual-e5-base
 # sentence-transformers/all-mpnet-base-v2
 # hiieu/halong_embedding
 # SentenceTransformer based on intfloat/multilingual-e5-base
-FT_MODEL_DIR = r"D:\duongluuba\bkai-foundation-modelsvietnamese-bi-encoder\bkai_finetuned_data_train_singlequery"  # ⚠️ sửa đường dẫn thật sự có model
+FT_MODEL_DIR = r"d:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\model_train\bkai_foundation_models_fine_tuning"  #  sửa đường dẫn thật sự có model
 
-print("\n🔹 Đang tải model base...")
+print("\n Đang tải model base...")
 model_base = SentenceTransformer(BASE_MODEL)
 
-print("🔹 Đang tải model fine-tuned...")
+print(" Đang tải model fine-tuned...")
 model_ft = SentenceTransformer(FT_MODEL_DIR)
 
-# ===== 4️⃣ Tạo Evaluator =====
+# ===== 4 Tạo Evaluator =====
 ir_eval = InformationRetrievalEvaluator(
     queries=queries,
     corpus=corpus,
@@ -638,30 +638,30 @@ ir_eval = InformationRetrievalEvaluator(
     map_at_k=[100],
     batch_size=64,
     show_progress_bar=True,
-    name="tourism-test",
     write_csv=True,
     write_predictions=False,
 )
 
-# ===== 5️⃣ Chạy đánh giá =====
-output_dir = r"D:\duongluuba\AIP491_G9\Data\\embeddings\\eval_model"  # ✅ Thư mục bạn muốn lưu kết quả CSV
+# ===== 5 Chạy đánh giá =====
+output_dir = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\embeddings\eval_model\bkai_v1"  #  Thư mục bạn muốn lưu kết quả CSV
 os.makedirs(output_dir, exist_ok=True)
 
-print("\n===== 🧭 BASE MODEL =====")
+print("\n=====  BASE MODEL =====")
 res_base = ir_eval(model_base, output_path=os.path.join(output_dir, "ir_eval_base"))
 print(ir_eval.primary_metric, "=", res_base[ir_eval.primary_metric])
 
-print("\n===== 🧠 FINETUNED MODEL =====")
+print("\n=====  FINETUNED MODEL =====")
 res_ft = ir_eval(model_ft, output_path=os.path.join(output_dir, "ir_eval_ft"))
 print(ir_eval.primary_metric, "=", res_ft[ir_eval.primary_metric])
 
-# ===== 6️⃣ In so sánh gọn gàng =====
+# ===== 6 In so sánh gọn gàng =====
 def show_metrics(res_base: dict, res_ft: dict, evaluator):
     # tiền tố tên bộ test, vd "tourism-test_"
     prefix = f"{evaluator.name}_" if evaluator.name else ""
     keys = [
         "cosine_accuracy@1",
         "cosine_accuracy@5",
+        "cosine_accuracy@10",
         "cosine_mrr@10",
         "cosine_ndcg@10",
         "cosine_map@100",
@@ -669,7 +669,7 @@ def show_metrics(res_base: dict, res_ft: dict, evaluator):
     def get(res, k): 
         return round(res.get(prefix + k, 0.0), 4)
 
-    print("\n📊 So sánh kết quả (đã ghép prefix):")
+    print("\n So sánh kết quả (đã ghép prefix):")
     for k in keys:
         b = get(res_base, k)
         f = get(res_ft, k)
@@ -680,4 +680,5 @@ def show_metrics(res_base: dict, res_ft: dict, evaluator):
 show_metrics(res_base, res_ft, ir_eval)
 
 
-print(f"\n✅ Kết quả CSV đã được lưu trong: {output_dir}")
+print(f"\n Kết quả CSV đã được lưu trong: {output_dir}")
+

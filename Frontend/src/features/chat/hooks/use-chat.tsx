@@ -142,6 +142,11 @@ export const ChatProvider = ({
       setIsTyping(false);
       setMessages((prevMessages) => [...prevMessages, botMessage]);
 
+      // Cập nhật selectedChat nếu đây là chat mới
+      if (!selectedChat && chatId) {
+        setSelectedChat(chatId);
+      }
+
       // Cập nhật lịch sử chat
       setHistory((prevHistory) => {
         const updatedHistory = prevHistory.map((chat) =>
@@ -186,6 +191,11 @@ export const ChatProvider = ({
 
       setIsTyping(false);
       setMessages((prevMessages) => [...prevMessages, botMessage]);
+
+      // Cập nhật selectedChat nếu đây là chat mới
+      if (!selectedChat && chatId) {
+        setSelectedChat(chatId);
+      }
 
       // Cập nhật lịch sử chat
       setHistory((prevHistory) => {

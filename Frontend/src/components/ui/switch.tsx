@@ -14,25 +14,29 @@ export const ThemeSwitch: React.FC<ThemeSwitchProps> = ({
 }) => {
   return (
     <div className="flex items-center space-x-2">
-      <span className="text-sm text-gray-500">
-        {theme === "light" ? "Light Mode" : "Dark Mode"}
+      <span className={`text-sm font-medium ${theme === "light" ? "text-orange-600" : "text-cyan-400"
+        }`}>
+        {theme === "light" ? "Chế độ sáng" : "Chế độ tối"}
       </span>
 
       <Switch
         onChange={toggleTheme}
         checked={theme === "dark"}
         /** MÀU NỀN THANH SWITCH */
-        offColor="#D1F3EB"      // Light mode: xanh ngọc nhạt (giống nút ChatGPT)
-        onColor="#00A67E"       // Dark mode: xanh ngọc đậm (brand ChatGPT)
+        offColor="#f97316"  // Light mode: cam (orange-500)
+        onColor="#06b6d4"   // Dark mode: xanh cyan (cyan-500)
 
         /** MÀU NÚT TRÒN */
-        offHandleColor="#ffffff"                       // Light mode: trắng
-        onHandleColor={theme === "dark" ? "#000000ff" : "#ffffff"}  // Dark mode: xanh sáng
+        offHandleColor="#ffffff"  // Light mode: trắng
+        onHandleColor="#0f172a"   // Dark mode: slate đen
 
         checkedIcon={false}
         uncheckedIcon={false}
-        height={20}
-        width={40}
+        height={22}
+        width={44}
+        handleDiameter={18}
+        boxShadow="0 2px 4px rgba(0,0,0,0.2)"
+        activeBoxShadow="0 2px 6px rgba(0,0,0,0.3)"
       />
     </div>
   );
