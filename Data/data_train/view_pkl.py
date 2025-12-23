@@ -1,10 +1,10 @@
 
-import os, pickle, random, torch
+import os, pickle, random, torch, json
 from pathlib import Path
 from sentence_transformers import SentenceTransformer, InputExample
 import pickle
 
-def load_triplets(pkl_path, output_pkl=None, show_samples=20):
+def load_triplets(pkl_path, output_pkl=None, show_samples = 20):
     """
     Đọc file .pkl chứa InputExample và hiển thị nội dung các mẫu.
     Nếu có negative -> in ra 3 trường, nếu không -> in ra query và positive.
@@ -46,7 +46,46 @@ def load_triplets(pkl_path, output_pkl=None, show_samples=20):
     #     except Exception as e:
     #         print(f"⚠️ Lỗi khi lưu file pickle: {e}")
 
-    # return triplets
+    return triplets
+
+def write_queries_to_jsonl(pkl_path, output_jsonl, num_samples=100):
+    """
+    Đọc file .pkl và ghi ra file JSONL với số lượng cặp query-positive được chỉ định.
+    
+    Args:
+        pkl_path: Đường dẫn file .pkl chứa InputExample
+        output_jsonl: Đường dẫn file JSONL output
+        num_samples: Số lượng cặp query cần ghi (mặc định 100)
+    """
+    with open(pkl_path, "rb") as f:
+        data = pickle.load(f)
+
+    query_pairs = []
+    
+    for ex in data:
+        if not isinstance(ex, InputExample):
+            continue
+
+        texts = ex.texts
+        if len(texts) == 2:
+            query = texts[0].strip()
+            positive = texts[1].strip()
+            query_pairs.append({
+                "query": query,
+                "positive": positive
+            })
+        
+        # Dừng khi đủ số lượng mẫu
+        if len(query_pairs) >= num_samples:
+            break
+    
+    # Ghi ra file JSONL
+    with open(output_jsonl, "w", encoding="utf-8") as f:
+        for pair in query_pairs:
+            f.write(json.dumps(pair, ensure_ascii=False) + "\n")
+    
+    print(f"\n✅ Đã ghi {len(query_pairs)} cặp query vào file: {output_jsonl}")
+    return query_pairs
 
 
 # ==========================
@@ -54,5 +93,8 @@ def load_triplets(pkl_path, output_pkl=None, show_samples=20):
 # ==========================
 if __name__ == "__main__":
     pkl_file = r"Code/Data/data_train/data_final_train_v1/data_filtered_v1.pkl"
-    load_triplets(pkl_file, "output_pkl")
+    output_jsonl = r"query_pairs_100.jsonl"
+    
+    # Ghi 100 cặp query ra file JSONL
+    write_queries_to_jsonl(pkl_file, output_jsonl, num_samples=100)
 
