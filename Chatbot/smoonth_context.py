@@ -10,7 +10,6 @@ def extract_consecutive_subarray(numbers: List[int]) -> List[List[int]]:
     """
     if not numbers:
         return []
-
     subarrays = []
     current_subarray = [numbers[0]]
 
@@ -70,8 +69,8 @@ def merge_contexts(retrieved_passages: List[Dict]) -> List[Dict]:
             psg_texts = [p["passage"] for p in psgs_to_merge]
             
             # Gộp lại thành một đoạn duy nhất
-            merged_passage_text = f"Title: {title}\n" + " ".join(psg_texts)
-
+            # merged_passage_text = f"Title: {title}\n" + " ".join(psg_texts)
+            merged_passage_text = " ".join(psg_texts)
             # Tạo một dict mới chứa thông tin của đoạn đã gộp
             final_merged_contexts.append(dict(
                 title=title, 
@@ -86,7 +85,6 @@ def merge_contexts(retrieved_passages: List[Dict]) -> List[Dict]:
 
     # Sắp xếp lại theo điểm để đảm bảo thứ tự
     return sorted(final_merged_contexts, key=lambda x: x["score"], reverse=True)
-
 
 def discard_contexts(passages: List[Dict], threshold: float = 0.05) -> List[Dict]:
     """

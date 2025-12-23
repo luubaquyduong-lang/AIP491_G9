@@ -38,7 +38,7 @@ export const Chat = () => {
   // Gợi ý câu hỏi ban đầu tùy theo ngôn ngữ
   const faqSuggestions = [
     language === "Tiếng Việt"
-      ? "Giới thiệu về thành phố Hà Nội"
+      ? "Giới thiệu về Việt Nam"
       : "Introduction to Ha Noi City.",
     language === "Tiếng Việt"
       ? "Giới thiệu địa điểm du lịch tại thành phố Hồ Chí Minh ?"

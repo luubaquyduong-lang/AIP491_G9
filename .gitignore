@@ -1,0 +1,93 @@
+# ===== PYTHON CACHE & BUILD =====
+# Thư mục cache chứa bytecode đã compile (.pyc)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Thư mục build và distribution
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ===== VIRTUAL ENVIRONMENT =====
+# Môi trường ảo Python
+venv/
+ENV/
+env/
+.venv
+
+# ===== JUPYTER NOTEBOOK =====
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# ===== IDE & EDITOR =====
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# ===== LOGS & TEMP FILES =====
+*.log
+*.tmp
+*.temp
+
+# ===== MODEL & DATA FILES =====
+# Model weights (nặng, không nên commit)
+*.pkl
+*.pth
+*.h5
+*.onnx
+*.bin
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# ChromaDB
+chroma_db/
+data_store/
+
+# ===== ENVIRONMENT VARIABLES =====
+.env
+.env.local
+.env.*.local
+
+# ===== OS SPECIFIC =====
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ===== FRONTEND (Next.js) =====
+Frontend/node_modules/
+Frontend/.next/
+Frontend/out/
+Frontend/build/
+Frontend/*.tsbuildinfo

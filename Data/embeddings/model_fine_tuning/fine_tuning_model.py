@@ -34,9 +34,17 @@
 import pickle
 
 # Đọc file pickle
-with open(r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\Embedding_data\\embeding_by_model_fine_e5.pkl", "rb") as f:
+with open(r"d:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\embedding_data\embeding_by_model_fine_bkai_v1.pkl", "rb") as f:
     embeddings_data = pickle.load(f)
 
 
 print(type(embeddings_data))
 print(embeddings_data.shape)  # nếu là np.ndarray sẽ ra (số văn bản, kích thước embedding)
+
+# In ra vector đầu tiên
+print("\n==== VECTOR ĐẦU TIÊN ====")
+print(f"Kích thước vector: {len(embeddings_data[0])}")
+print(f"Vector: {embeddings_data[0]}")
+
+# In ra 10 giá trị đầu của vector để dễ nhìn
+print(f"\n10 giá trị đầu tiên: {embeddings_data[0][:10]}")

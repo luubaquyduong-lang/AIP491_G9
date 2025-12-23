@@ -101,8 +101,9 @@ def crawl_and_save(url, output_path):
         last_tag = None
 
         for div in content_divs:
-            # Bỏ qua phần không chứa nội dung chính
-            if not any(cls in ['inset-column', 'outset-column'] for cls in div.get('class', [])):
+            # Chỉ xử lý phần chứa nội dung chính
+            div_classes = div.get('class', [])
+            if not div_classes or not any(cls in ['inset-column', 'outset-column'] for cls in div_classes):
                 continue
 
             # Duyệt các thẻ h3, p, b, strong trong mỗi khối
@@ -202,6 +203,11 @@ def crawl_and_save(url, output_path):
         final_text = "\n".join(dict.fromkeys(line.strip() for line in collected_text if line.strip()))
         final_text = re.sub(r'\n{2,}', '\n', final_text)
 
+        # Kiểm tra nếu không có nội dung
+        if not final_text.strip():
+            print(f"⚠️ Không thu thập được nội dung từ URL: {url}")
+            return False
+
         # ---- 4. Tạo output cuối ----
         output_text = f"Giới thiệu {title}. {final_text}"
 
@@ -210,19 +216,25 @@ def crawl_and_save(url, output_path):
         with open(output_path, 'a', encoding='utf-8') as f:
             f.write(output_text + "\n")
 
-        print(f" Đã lưu vào: {output_path}")
+        print(f"✅ Đã lưu vào: {output_path}")
+        print(f"📝 Số ký tự: {len(output_text)}\n")
+        return True
 
+    except requests.RequestException as e:
+        print(f"❌ Lỗi kết nối khi crawl {url}: {e}")
+        return False
     except Exception as e:
-        print(f" Lỗi khi crawl {url}: {e}")
+        print(f"❌ Lỗi khi crawl {url}: {e}")
         traceback.print_exc()
+        return False
 
 
 # ==========================
 # CHƯƠNG TRÌNH CHÍNH
 # ==========================
 # if __name__ == "__main__":
-#     input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vnexpress\data_text\vnexpress_link.txt"
-#     output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vnexpress\data_text\test.txt"
+#     input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\raw\vnexpress\vnexpress_link.txt"
+#     output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\raw\vnexpress\test.txt"
 
 #     # Xóa file cũ nếu có
 #     if os.path.exists(output_file):
@@ -248,6 +260,6 @@ def crawl_and_save(url, output_path):
 #         print(f" Lỗi: Không tìm thấy file input: {input_file}")
 #     except Exception as e:
 #         print(f" Lỗi không xác định: {e}")
-url = 'https://vnexpress.net/48-gio-o-y-ty-4807822.html'
-output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vnexpress\data_text\test.txt"
+url = 'https://vnexpress.net/cam-nang-du-lich-binh-thuan-4749039.html'
+output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\raw\vnexpress\test.txt"
 crawl_and_save(url, output_file)

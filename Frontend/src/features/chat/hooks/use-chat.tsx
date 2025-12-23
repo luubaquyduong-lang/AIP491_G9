@@ -1,3 +1,9 @@
+// ===== CUSTOM HOOK: USE CHAT =====
+// File: use-chat.tsx
+// Mô tả: React Context và Hook quản lý toàn bộ state của chatbot
+//        Bao gồm: messages, input, history, theme, language, sidebar...
+//        Cung cấp các hàm xử lý: gửi tin nhắn, tạo chat mới, đổi ngôn ngữ...
+
 "use client";
 
 import { Chat, Message, Prisma } from "@prisma/client";
@@ -12,10 +18,35 @@ import React, {
   useEffect,
 } from "react";
 
-// Kiểu mở rộng Chat kèm theo danh sách messages
+// ===== TYPE DEFINITIONS =====
+
+/**
+ * WithMessagesChat - Kiểu dữ liệu Chat kèm theo danh sách messages
+ * Sử dụng Prisma's Payload type để include messages relation
+ */
 type WithMessagesChat = Prisma.ChatGetPayload<{ include: { messages: true } }>;
 
-// Định nghĩa kiểu dữ liệu cho Context
+/**
+ * ChatContextType - Interface định nghĩa toàn bộ state và methods của chat context
+ * 
+ * State management:
+ * - messages: Danh sách tin nhắn trong cuộc chat hiện tại
+ * - input: Giá trị input box người dùng đang gõ
+ * - history: Danh sách tất cả cuộc chat của user
+ * - selectedChat: ID của chat đang được chọn
+ * - sidebarOpen: Trạng thái đóng/mở sidebar
+ * - isTyping: Bot đang typing hay không
+ * - theme: Chế độ sáng/tối
+ * - language: Ngôn ngữ hiện tại (Tiếng Việt/English)
+ * 
+ * Methods:
+ * - handleSubmit: Xử lý gửi tin nhắn
+ * - startNewChat: Tạo cuộc chat mới
+ * - toggleTheme: Chuyển đổi theme
+ * - toggleSidebar: Đóng/mở sidebar
+ * - handleLanguageChange: Thay đổi ngôn ngữ
+ * - handleSuggestionClick: Xử lý click vào câu hỏi gợi ý
+ */
 interface ChatContextType {
   messages: MessageClient[];
   setMessages: React.Dispatch<React.SetStateAction<MessageClient[]>>;

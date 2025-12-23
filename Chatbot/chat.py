@@ -7,7 +7,7 @@ from openai import OpenAI
 from chromadb import PersistentClient
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
-
+from pyvi.ViTokenizer import tokenize
 # --- Import Module Nội Bộ ---
 from smoonth_context import smooth_contexts
 from data_loader import load_meta_corpus 
@@ -120,7 +120,7 @@ def rewrite_question(history):
     
     # Lấy 6 câu trước đó làm ngữ cảnh (loại trừ câu cuối)
     prev_turns = history[:-1][-6:] 
-    
+    print(prev_turns)
     # Nếu không có lịch sử trước đó thì không cần viết lại (trả về câu gốc)
     if not prev_turns:
         return current_question
@@ -178,8 +178,10 @@ def chroma_retrieve_formatted(query, topk = 10):
     """
     Lấy dữ liệu từ Chroma và format chuẩn cho smooth_contexts
     """
+    # seg_query = tokenize(query)
+    # print('seg_query', seg_query)
+    # q_emb = EMB_MODEL.encode([seg_query]).tolist()
     q_emb = EMB_MODEL.encode([query]).tolist()
-    
     result = collection.query(
         query_embeddings=q_emb,
         n_results=topk,
@@ -215,7 +217,7 @@ def get_prompt(question, contexts, language):
         context_list = [f"Context [{i+1}]: {c['passage']}" for i, c in enumerate(contexts)]
         input_str = "\n\n".join(context_list)
         input_str = f"\n\n{input_str}\n\n"
-
+    print(f"input_str: {input_str}")
     # Chèn dữ liệu vào mẫu prompt
     prompt = PROMPT_TEMPLATE.format(
         input=input_str,
@@ -223,63 +225,6 @@ def get_prompt(question, contexts, language):
         language=language
     )
     return prompt
-
-# def chatbot(history, language="vi"):
-#     """
-#     RAG pipeline:
-#     - original_q: câu gốc người dùng (để kiểm small-talk)
-#     - new_q: câu đã rewrite dùng cho retrieval
-#     """
-#     # Quy ước: nếu caller truyền original_q thì dùng nó cho small-talk,
-#     # nếu không thì fallback vào history[-1]["content"].
-#     # Lấy câu hỏi cuối cùng mà người dùng nhập vào
-#     original_q = history[-1]['content']
-#     # print(f"User query : {original_q}")
-#     # 1. Check Small Talk (dùng original query)
-#     st = classify_small_talk(original_q, language)
-#     if st != "no":
-#         return st
-#     # Nếu không phải small talk -> xử lý theo pipeline RAG
-#     elif st == 'no':
-#         # 2. Use provided rewritten query for retrieval/generation
-#         try:
-#             new_q = rewrite_question(history)
-#             # thay thế câu hỏi hỏi original query trong history bằng new qurery
-#             history[-1]['content'] = new_q
-#         except Exception as e:
-#             print(f"Warning: rewrite_question failed: {e}")
-#             new_q = original_q
-#         print(f"Rewritten Query: {new_q}")
-
-#         # 3. Retrieve
-#         raw_contexts = chroma_retrieve_formatted(new_q, topk=10)
-#         # print("Retrieve: ", raw_contexts)
-#         # 4. Smooth Contexts
-#         if raw_contexts:
-#             final_contexts = smooth_contexts(raw_contexts, META_CORPUS)
-#             # print(f"Contexts: {len(raw_contexts)} raw -> {len(final_contexts)} smoothed")
-#             # print('Smooth Contexts: ', final_contexts)
-#         else:
-#             final_contexts = []
-
-#         # 5. Build Prompt
-#         prompt = get_prompt(new_q, final_contexts, language)
-#         # print(f"prompt: {prompt}")
-
-#         # 6. Generate Answer
-#         res = client.chat.completions.create(
-#             model="gpt-4o-mini",
-#             messages=[{"role": "user", "content": prompt}]
-#         )
-
-#         answer = res.choices[0].message.content.strip()
-#         return answer
-#     # Trường hợp lỗi không mong muốn
-#     else:
-#         print("Unexpected response from the model.")
-#         return "Xin lỗi, hệ thống không xử lý được."
-    
-#     # Kết thúc hàm chatbot
 
 def chatbot(history, language="vi"):
     """
@@ -303,22 +248,29 @@ def chatbot(history, language="vi"):
         print(f"Warning: rewrite_question failed: {e}")
         rewritten_q = original_q # Fallback về câu gốc nếu lỗi
     
-    # --- ĐOẠN SỬA QUAN TRỌNG ---
-    # KHÔNG ĐƯỢC LÀM: history[-1]['content'] = rewritten_q
-    # Hãy dùng biến rewritten_q cho các bước tiếp theo
     
     # 4. Retrieve (Dùng câu ĐÃ VIẾT LẠI)
     raw_contexts = chroma_retrieve_formatted(rewritten_q, topk=10)
+    
+    # in ra title và doc_id của các chunk được lấy
+    print(f"\n--- Retrieved {len(raw_contexts)} chunks ---")
+    for idx, ctx in enumerate(raw_contexts, 1):
+        word_count = len(ctx['passage'].split())
+        print(f"  [{idx}] Title: {ctx['title']} | doc_id: {ctx['doc_id']} | score: {ctx['score']:.4f} | words: {word_count}")
+
     
     # 5. Smooth Contexts
     if raw_contexts:
         final_contexts = smooth_contexts(raw_contexts, META_CORPUS)
     else:
         final_contexts = []
-
-    # 6. Build Prompt (Dùng câu ĐÃ VIẾT LẠI để hỏi model trả lời)
-    # Model sẽ trả lời tốt hơn nếu nhận được câu hỏi rõ nghĩa (rewritten_q) 
-    # thay vì câu cụt lủn (original_q)
+    # in ra title và doc_id của các chunk được lấy
+    print(f"\n--- Smooth Contexts {len(final_contexts)} chunks ---")
+    for idx, ctx in enumerate(final_contexts, 1):
+        word_count = len(ctx['passage'].split())
+        print(f"  [{idx}] Title: {ctx['title']} | doc_id: {ctx['doc_id']} | score: {ctx['score']:.4f} | len: {word_count}")
+    # print(f"final_contexts: {final_contexts}")
+    # 6. Build Prompt 
     prompt = get_prompt(rewritten_q, final_contexts, language)
     
     # 7. Generate Answer
@@ -337,10 +289,8 @@ def main():
     print("\n" + "="*50)
     print("Chatbot Du lịch Việt Nam (RAG Complete Version)")
     print("="*50 + "\n")
-
     history = []
     current_lang = "vi" 
-
     while True:
         try:
             query = input("Bạn: ").strip()
@@ -349,10 +299,10 @@ def main():
             if query.lower() in ["exit", "quit", "bye", "e", "thoát"]:
                 print("Tạm biệt! Hẹn gặp lại.")
                 break
-            #  Append original question to history (keep original)
+            #  
             history.append({"role": "user", "content": query})
 
-            #  Call chatbot with both original and rewritten queries
+            #  
             reply = chatbot(history, language=current_lang)
 
             print(f"Bot: {reply}\n")
