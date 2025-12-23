@@ -92,8 +92,8 @@ def write_queries_to_jsonl(pkl_path, output_jsonl, num_samples=100):
 # MAIN
 # ==========================
 if __name__ == "__main__":
-    pkl_file = r"Code/Data/data_train/data_final_train_v1/data_filtered_v1.pkl"
-    output_jsonl = r"query_pairs_100.jsonl"
+    pkl_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_train\splits\test_pairs_v1.pkl"
+    output_jsonl = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\data_train\query_pairs_100.jsonl"
     
     # Ghi 100 cặp query ra file JSONL
     write_queries_to_jsonl(pkl_file, output_jsonl, num_samples=100)
