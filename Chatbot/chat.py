@@ -27,23 +27,10 @@ print(">> Connecting to ChromaDB...")
 chroma_client = PersistentClient(path=DB_PATH)
 collection = chroma_client.get_collection(name="aip491_v1")
 
-print(">> Loading Meta Corpus (cho smooth context)...")
+# print(">> Loading Meta Corpus (cho smooth context)...")
 META_CORPUS = load_meta_corpus(CORPUS_PATH) 
 
 # ========================= PROMPT TEMPLATE =========================
-# PROMPT_TEMPLATE = (
-#     """###Yêu cầu: Bạn là một trợ lý du lịch thông minh, chuyên cung cấp câu trả lời dựa trên thông tin được truy xuất từ hệ thống về du lịch Việt Nam. Khi nhận được dữ liệu truy xuất từ RAG, hãy:  
-#     1. Phân tích dữ liệu để trả lời đúng trọng tâm câu hỏi của người dùng. Chỉ trả lời dựa trên dữ liệu được cung cấp, không suy đoán hoặc tạo ra thông tin mới.
-#     2. Tóm tắt thông tin một cách rõ ràng, ngắn gọn nhưng vẫn đầy đủ ý nghĩa.  
-#     3. Trả lời với giọng điệu thân thiện và dễ tiếp cận.  
-#     4. Nếu dữ liệu truy xuất không có thông tin liên quan đến câu hỏi hoặc không có dữ liệu nào được truy xuất, hãy trả lời: "Xin lỗi, tôi không có thông tin phù hợp để trả lời câu hỏi này."  
-#     5. Nếu câu hỏi không liên quan đến chủ đề du lịch Việt Nam (out domain) hãy giới thiệu lịch sự về lĩnh vực của mình.
-#     6. Trả lời câu hỏi bằng ngôn ngữ: {language}
-
-#     ###Dựa vào một số ngữ cảnh truy xuất được dưới đây nếu bạn thấy nó có liên quan đến câu hỏi thì trả lời câu hỏi ở cuối. {input}
-#     ###Câu hỏi từ người dùng: {question}
-#     ###Nếu thấy ngữ cảnh có liên quan đến câu hỏi hãy trả lời chi tiết và đầy đủ dựa trên ngữ cảnh."""
-# )
 PROMPT_TEMPLATE = (
     """###Vai trò: Bạn là trợ lý du lịch ảo thông minh, am hiểu sâu sắc về du lịch Việt Nam. Nhiệm vụ của bạn là hỗ trợ du khách dựa trên thông tin được cung cấp.
 
@@ -231,7 +218,6 @@ def chatbot(history, language="vi"):
     RAG pipeline
     """
     # 1. Lấy câu gốc để check small talk và làm ngữ cảnh
-    # Copy để đảm bảo không sửa nhầm, dù list slicing trả về copy nhưng cẩn thận vẫn hơn
     original_q = history[-1]['content'] 
     
     # 2. Check Small Talk (Dùng câu GỐC)
@@ -256,10 +242,9 @@ def chatbot(history, language="vi"):
     print(f"\n--- Retrieved {len(raw_contexts)} chunks ---")
     for idx, ctx in enumerate(raw_contexts, 1):
         word_count = len(ctx['passage'].split())
-        print(f"  [{idx}] Title: {ctx['title']} | doc_id: {ctx['doc_id']} | score: {ctx['score']:.4f} | words: {word_count}")
+        print(f"  [{idx}] Title: {ctx['title']} | doc_id: {ctx['doc_id']} | score: {ctx['score']:.4f}  | words: {word_count}")
 
-    
-    # 5. Smooth Contexts
+    # 5. Smooth Contex
     if raw_contexts:
         final_contexts = smooth_contexts(raw_contexts, META_CORPUS)
     else:
@@ -284,6 +269,7 @@ def chatbot(history, language="vi"):
     except Exception as e:
         print(f"Generation error: {e}")
         return "Xin lỗi, đã xảy ra lỗi khi tạo câu trả lời."
+    
 # ========================= VÒNG LẶP CHÍNH =========================
 def main():
     print("\n" + "="*50)
@@ -298,11 +284,7 @@ def main():
                 continue
             if query.lower() in ["exit", "quit", "bye", "e", "thoát"]:
                 print("Tạm biệt! Hẹn gặp lại.")
-                break
-            #  
             history.append({"role": "user", "content": query})
-
-            #  
             reply = chatbot(history, language=current_lang)
 
             print(f"Bot: {reply}\n")

@@ -45,7 +45,10 @@ export const Chat = () => {
       : "Introducing tourist destinations in Ho Chi Minh City ?",
     language === "Tiếng Việt"
       ? "Bãi biển tại Thanh Hóa ?"
-      : "Introducing tourist destinations in Ho Chi Minh City ?",
+      : "Beaches in Thanh Hoa?",
+    language === "Tiếng Việt"
+      ? "Địa điểm vui chơi tại Thành phố Hà Nội là gì ?"
+      : "What are the fun places in Hanoi City ?",
   ];
 
   // Tự scroll xuống cuối khi danh sách message thay đổi

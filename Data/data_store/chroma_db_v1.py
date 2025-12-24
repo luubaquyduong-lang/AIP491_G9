@@ -116,7 +116,6 @@ def main():
     n = len(corpus)
 
     # ------------------ 2. Load embeddings nếu có ------------------
-    # embeddings dự kiến là list/np.array kích thước n x dim
     embeddings = None
     if EMBED_PKL and os.path.exists(EMBED_PKL):
         with open(EMBED_PKL, "rb") as f:

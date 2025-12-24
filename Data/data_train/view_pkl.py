@@ -4,7 +4,7 @@ from pathlib import Path
 from sentence_transformers import SentenceTransformer, InputExample
 import pickle
 
-def load_triplets(pkl_path, output_pkl=None, show_samples = 20):
+def load_pair(pkl_path, output_pkl=None, show_samples = 20):
     """
     Đọc file .pkl chứa InputExample và hiển thị nội dung các mẫu.
     Nếu có negative -> in ra 3 trường, nếu không -> in ra query và positive.
@@ -12,7 +12,7 @@ def load_triplets(pkl_path, output_pkl=None, show_samples = 20):
     with open(pkl_path, "rb") as f:
         data = pickle.load(f)
 
-    triplets = []
+    pair = []
     i = 0
 
     for ex in data:
@@ -24,7 +24,7 @@ def load_triplets(pkl_path, output_pkl=None, show_samples = 20):
             q = f"{texts[0].strip()}"
             p = f"{texts[1].strip()}"
             # n = "(no negative)"
-            triplets.append(InputExample(texts=[texts[0], texts[1]]))
+            pair.append(InputExample(texts=[texts[0], texts[1]]))
         else:
             continue
 
@@ -35,18 +35,18 @@ def load_triplets(pkl_path, output_pkl=None, show_samples = 20):
 
         i += 1
 
-    print(f"\n✅ Tổng số mẫu hợp lệ: {len(triplets)}")
+    print(f"\n✅ Tổng số mẫu hợp lệ: {len(pair)}")
 
     # # Ghi ra file mới (tuỳ chọn)
     # if output_pkl:
     #     try:
     #         with open(output_pkl, "wb") as f:
-    #             pickle.dump(triplets, f)
-    #         print(f"💾 Đã lưu {len(triplets)} mẫu vào {output_pkl}")
+    #             pickle.dump(pair, f)
+    #         print(f"💾 Đã lưu {len(pair)} mẫu vào {output_pkl}")
     #     except Exception as e:
     #         print(f"⚠️ Lỗi khi lưu file pickle: {e}")
 
-    return triplets
+    return pair
 
 def write_queries_to_jsonl(pkl_path, output_jsonl, num_samples=100):
     """

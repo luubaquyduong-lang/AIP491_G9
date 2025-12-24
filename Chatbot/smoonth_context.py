@@ -86,10 +86,10 @@ def merge_contexts(retrieved_passages: List[Dict]) -> List[Dict]:
     # Sắp xếp lại theo điểm để đảm bảo thứ tự
     return sorted(final_merged_contexts, key=lambda x: x["score"], reverse=True)
 
-def discard_contexts(passages: List[Dict], threshold: float = 0.05) -> List[Dict]:
+def discard_contexts(passages: List[Dict], threshold: float = 0.1) -> List[Dict]:
     """
     Loại bỏ các đoạn có điểm thấp dựa trên sự chênh lệch điểm 
-    so với đoạn kế tiếp (giả định đã sắp xếp).
+    so với đoạn kế tiếp (đã sắp xếp).
     Giúp lọc bớt ngữ cảnh yếu, không liên quan đến truy vấn.
     """
     # 1. Sắp xếp theo điểm từ thấp đến cao (cần cho logic lọc chênh lệch)
