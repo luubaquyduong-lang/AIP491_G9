@@ -1,7 +1,6 @@
 # ===== FASTAPI BACKEND SERVER =====
 # File: main.py
-# Mô tả: API server chính xử lý request từ frontend Next.js
-#        và trả về response từ chatbot RAG (Retrieval-Augmented Generation)
+# Mô tả: API server chính xử lý request từ frontend Next.js và trả về response từ chatbot RAG (Retrieval-Augmented Generation)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,19 +12,17 @@ from anyio import to_thread
 from chat import chatbot
 
 # ===== CẤU HÌNH LOGGING =====
-# Hiển thị log level INFO để theo dõi request/response
 logging.basicConfig(level=logging.INFO)
 
 # ===== KHỞI TẠO FASTAPI APP =====
 app = FastAPI(title="AIP491 Backend")
 
 # ===== CẤU HÌNH CORS (Cross-Origin Resource Sharing) =====
-# Cho phép frontend (Next.js) gọi API từ domain khác
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:3000",  # Frontend phát triển local
-        "http://localhost:3000",   # Địa chỉ localhost thay thế
+        "http://localhost:3000",   
     ],
     allow_credentials=True,  
     allow_methods=["*"],     
@@ -44,12 +41,12 @@ app.add_middleware(
 class Message(BaseModel):
     """Schema cho một tin nhắn trong cuộc hội thoại"""
     role: str      # "user" (người dùng) hoặc "assistant" (trợ lý)
-    content: str   # Nội dung tin nhắn
+    content: str   
 
 class RequestData(BaseModel):
     """Schema cho request body từ frontend"""
-    messages: List[Message]           # Toàn bộ lịch sử hội thoại
-    language: Optional[str] = "vi"    # Ngôn ngữ trả lời (mặc định: tiếng Việt)
+    messages: List[Message]           
+    language: Optional[str] = "vi"    
 
 # ===== HEALTH CHECK ENDPOINT =====
 @app.get("/ping")

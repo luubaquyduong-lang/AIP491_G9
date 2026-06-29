@@ -64,31 +64,32 @@ def crawl_data(url, output_file, error_file):
                     file.write(f"Đặc điểm: {dac_diem}.")
                 file.write("\n")
 
-            print(f"✅ [{attempt}] Đã lưu: {h4 or 'Không tiêu đề'} ({province or 'Không rõ tỉnh'})\n")
+            print(f" [{attempt}] Đã lưu: {h4 or 'Không tiêu đề'} ({province or 'Không rõ tỉnh'})\n")
             time.sleep(1)  # Nghỉ nhẹ giữa các link
             break  # Dừng retry nếu thành công
 
         except Exception as e:
-            print(f"⚠️ Lần {attempt} lỗi với {url}: {e}")
+            print(f" Lần {attempt} lỗi với {url}: {e}")
             if attempt < max_retries:
                 wait_time = 5 * attempt
-                print(f"⏳ Đợi {wait_time}s rồi thử lại...")
+                print(f" Đợi {wait_time}s rồi thử lại...")
                 time.sleep(wait_time)
             else:
-                print(f"❌ Bỏ qua link sau {max_retries} lần lỗi: {url}\n")
+                print(f" Bỏ qua link sau {max_retries} lần lỗi: {url}\n")
                 with open(error_file, "a", encoding="utf-8") as log:
                     log.write(f"{url}\t{e}\n")
 
-# --- Chạy toàn bộ ---
+# ---  ---
 if __name__ == "__main__":
-    input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vietnamtourism\vietnamtourism_link.txt"
-    output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vietnamtourism\vietnamtourism_data.txt"
-    error_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vietnamtourism\error_links.txt"
+    input_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\raw\vietnamtourism\vietnamtourism_link.txt"
+    output_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\raw\vietnamtourism\vietnamtourism_data.txt"
+    error_file = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\raw\vietnamtourism\error_links.txt"
 
     with open(input_file, "r", encoding="utf-8") as f:
         urls = [line.strip() for line in f if line.strip()]
 
-    print(f"🔍 Tổng số link cần crawl: {len(urls)}")
+    print(f" Tổng số link cần crawl: {len(urls)}")
     for i, url in enumerate(urls, start=1):
-        print(f"▶️ [{i}/{len(urls)}] Đang crawl: {url}")
+        print(f"▶ [{i}/{len(urls)}] Đang crawl: {url}")
         crawl_data(url, output_file, error_file)
+

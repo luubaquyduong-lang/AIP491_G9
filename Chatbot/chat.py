@@ -2,6 +2,10 @@ import os
 import pickle
 from typing import List, Dict
 
+# # Disable PostHog telemetry to avoid SSL errors
+# os.environ["ANONYMIZED_TELEMETRY"] = "False"
+# os.environ["POSTHOG_FEATURE_FLAGS_DISABLED"] = "1"
+
 # --- Thư viện bên thứ 3 ---
 from openai import OpenAI
 from chromadb import PersistentClient
@@ -84,6 +88,7 @@ def classify_small_talk(user_input, language="vi"):
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}]
+            
         )
         answer = completion.choices[0].message.content.strip()
         # Logic check để đảm bảo trả về "no" đúng định dạng
@@ -222,8 +227,9 @@ def chatbot(history, language="vi"):
     
     # 2. Check Small Talk (Dùng câu GỐC)
     st = classify_small_talk(original_q, language)
-    if st != "no":
-        return st # Trả về luôn nếu là small talk
+    print(st)
+    if st not in ["no", 'Response: "no"']:
+        return st
 
     # 3. Query Rewriting
     try:
@@ -259,6 +265,7 @@ def chatbot(history, language="vi"):
     prompt = get_prompt(rewritten_q, final_contexts, language)
     
     # 7. Generate Answer
+    print("Generate Answer")
     try:
         res = client.chat.completions.create(
             model="gpt-4o-mini",

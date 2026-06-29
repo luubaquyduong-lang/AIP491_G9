@@ -11,15 +11,15 @@
 # output = []
 # line_id = 0
 
-# # ✅ File input và output
+# #  File input và output
 # input_path = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vietnamtourism\vietnamtourism_data.txt"
 # output_path = r"D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data\vietnamtourism\vietnamtourism_corpus_chunks.jsonl"
 
-# # ✅ Đọc 10 dòng đầu tiên
+# #  Đọc 10 dòng đầu tiên
 # with open(input_path, 'r', encoding='utf-8') as f:
 #     lines = list(islice(f, 10))
 
-# # ✅ Xử lý từng dòng
+# #  Xử lý từng dòng
 # for line_num, line in enumerate(lines):
 #     line = line.strip()
 #     if not line:
@@ -39,17 +39,17 @@
 #         output.append(obj)
 #         line_id += 1
 
-# # ✅ Ghi ra file JSONL (mỗi đối tượng trên 1 dòng)
+# #  Ghi ra file JSONL (mỗi đối tượng trên 1 dòng)
 # with open(output_path, 'w', encoding='utf-8') as f:
 #     for item in output:
 #         f.write(json.dumps(item, ensure_ascii=False) + '\n')
 
-# print(f"✅ Đã xử lý và ghi {len(output)} đoạn vào file JSONL:")
+# print(f" Đã xử lý và ghi {len(output)} đoạn vào file JSONL:")
 # print(output_path)
 
 import json
 
-MAX_LEN = 152
+MAX_LEN = 150
 
 def split_text_by_word_count(text, max_words):
     words = text.split()
@@ -83,4 +83,4 @@ with open('D:\ARTIFICIAL_INTELLIGENCE\KY_9\AIP491\AIP491_G9\Data/vietnamtourism/
     for item in output:
         f.write(json.dumps(item, ensure_ascii=False) + '\n')
 
-print(f"✅ Đã xử lý xong và xuất {len(output)} đoạn vào output.jsonl")
+print(f" Đã xử lý xong và xuất {len(output)} đoạn vào output.jsonl")

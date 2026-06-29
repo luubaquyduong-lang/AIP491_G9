@@ -195,6 +195,7 @@ Tạo file `.env` trong thư mục `Chatbot/`:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 ```
 
 #### 2.4. Chuẩn bị dữ liệu
@@ -572,11 +573,15 @@ pip install xxx
 - Kiểm tra OPENAI_API_KEY trong file `.env`
 - Đảm bảo có đủ credits trong tài khoản OpenAI
 
-**4. CORS Error**
+**4. Google Maps API Error**
+- Kiểm tra GOOGLE_MAPS_API_KEY trong file `.env`
+- Đảm bảo đã bật Geocoding API trong Google Cloud Console
+
+**5. CORS Error**
 - Kiểm tra CORS middleware trong `main.py`
 - Đảm bảo frontend URL được thêm vào `allow_origins`
 
-**5. Model loading error**
+**6. Model loading error**
 - Model sẽ tự động download khi chạy lần đầu
 - Cần kết nối internet ổn định
 

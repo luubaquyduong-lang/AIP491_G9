@@ -40,5 +40,16 @@ requests==2.32.3
 tqdm
 scikit-learn
 
+# LangChain - Tool Calling Agent Framework
+langchain==0.1.20
+langchain-core==0.1.48
+langchain-openai==0.1.9
+langchain-community==0.0.28
+
+# Jupyter & Interactive (optional - cho notebook)
+jupyter==1.0.0
+ipywidgets==8.1.1
+ipython>=8.0.0
+
 # Google Colab (optional - chỉ cần khi chạy trên Colab)
 # google-colab
